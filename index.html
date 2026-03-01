@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="build-version" content="202603010001">
+<meta name="build-version" content="202603010005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -300,7 +300,7 @@
     <p id="header-subtitle">تتبع ساعات عملك وأرباحك في كل مكان</p>
     <div id="upgrade-banner" style="display:none;margin-top:12px;">
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
-        <a href="https://wa.me/201116631624?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:10px 18px;border-radius:25px;font-family:Cairo,sans-serif;font-weight:900;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 15px rgba(37,211,102,0.4);">
+        <a href="https://wa.me/201030391975?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:10px 18px;border-radius:25px;font-family:Cairo,sans-serif;font-weight:900;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 15px rgba(37,211,102,0.4);">
           <span id="wa-btn-lbl">💬 تواصل على واتساب للترقية</span>
         </a>
         <button onclick="showUpgrade()" style="background:linear-gradient(135deg,#ff6d00,#ffd600);color:#000;border:none;padding:10px 18px;border-radius:25px;font-family:Cairo,sans-serif;font-weight:900;font-size:.82rem;cursor:pointer;box-shadow:0 4px 15px rgba(255,109,0,0.4);">
@@ -500,6 +500,8 @@
         <div class="s-row"><span class="lbl" id="lbl-extra-pay">⚡ إضافي</span><span class="val" id="sal-extra">0 ج</span></div>
         <div class="s-row stotal"><span class="lbl" id="lbl-gross">📊 الإجمالي</span><span class="val" id="sal-gross">0 ج</span></div>
         <div class="s-row stax"><span class="lbl" id="lbl-tax-row">🧾 ضريبة (<span id="tax-pct-lbl">0</span>%)</span><span class="val" id="sal-tax">0 ج</span></div>
+        <div class="s-row stax"><span class="lbl" id="lbl-discount-row">✂️ الخصومات</span><span class="val" id="sal-discount">0 ج</span></div>
+        <div class="s-row stax"><span class="lbl" id="lbl-total-discount-row" style="padding-right:12px;font-size:.8rem;">📋 إجمالي الخصومات</span><span class="val" id="sal-total-discount" style="color:var(--red);">0 ج</span></div>
         <div class="s-row snet"><span class="lbl" id="lbl-net-row">💰 الصافي</span><span class="val" id="sal-net">0 ج</span></div>
       </div>
     </div>
@@ -525,7 +527,7 @@
       <div id="byplace-list"></div>
       <div class="salary-card">
         <div class="s-row stotal"><span class="lbl" id="lbl-bp-gross">📊 الإجمالي الكلي</span><span class="val" id="bp-gross">0 ج</span></div>
-        <div class="s-row stax"><span class="lbl" id="lbl-bp-tax">🧾 مجموع الضرائب</span><span class="val" id="bp-tax">0 ج</span></div>
+        <div class="s-row stax"><span class="lbl" id="lbl-bp-tax">✂️ مجموع الخصومات</span><span class="val" id="bp-tax">0 ج</span></div>
         <div class="s-row snet"><span class="lbl" id="lbl-bp-net">💰 الصافي الكلي</span><span class="val" id="bp-net">0 ج</span></div>
       </div>
     </div>
@@ -625,13 +627,13 @@
     <div class="act-price-badge">100 جنيه فقط</div>
     <div class="act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج): أماكن غير محدودة</div>
 
-    <a href="https://wa.me/201116631624?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:13px;border-radius:13px;font-family:Cairo,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:10px;box-shadow:0 4px 20px rgba(37,211,102,0.3);">💬 تواصل على واتساب للدفع والترقية</a>
+    <a href="https://wa.me/201030391975?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:13px;border-radius:13px;font-family:Cairo,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:10px;box-shadow:0 4px 20px rgba(37,211,102,0.3);">💬 تواصل على واتساب للدفع والترقية</a>
     <button class="act-free-btn" onclick="useFree()">🆓 استخدام النسخة المجانية</button>
 
     <div class="act-pay-box">
       <div class="act-pay-title">💳 للترقية — ادفع 100 جنيه (مرة واحدة فقط) على:</div>
       <div class="act-pay-row"><span class="act-pay-ico">📱</span><div><div class="act-pay-num">01158760466</div><div class="act-pay-label">InstaPay / اتصالات كاش</div></div></div>
-      <div class="act-pay-row"><span class="act-pay-ico">📲</span><div><div class="act-pay-num">01116631624</div><div class="act-pay-label">Vodafone Cash</div></div></div>
+      <div class="act-pay-row"><span class="act-pay-ico">📲</span><div><div class="act-pay-num">01030391975</div><div class="act-pay-label">Vodafone Cash</div></div></div>
       <div style="font-size:.75rem;color:var(--muted);margin-top:10px;text-align:center;">بعد الدفع هتاخد كود تفعيل على واتساب</div>
     </div>
 
@@ -896,11 +898,13 @@ const _origAddPlace = typeof addPlace !== 'undefined' ? addPlace : null;
 
 let places   = JSON.parse(localStorage.getItem('sj_places')||'[]');
 let shifts   = JSON.parse(localStorage.getItem('sj_shifts') ||'[]');
-let placeTax = JSON.parse(localStorage.getItem('sj_ptax')  ||'{}');
+let placeTax      = JSON.parse(localStorage.getItem('sj_ptax')   ||'{}');
+let placeDiscount = JSON.parse(localStorage.getItem('sj_pdisc')  ||'{}');
 function save(){
   localStorage.setItem('sj_places',JSON.stringify(places));
   localStorage.setItem('sj_shifts', JSON.stringify(shifts));
   localStorage.setItem('sj_ptax',   JSON.stringify(placeTax));
+  localStorage.setItem('sj_pdisc',  JSON.stringify(placeDiscount));
 }
 const TYPE_LBL={hour:'بالساعة',shift:'بالشيفت',case:'بالحالة'};
 let summaryView='total';
@@ -1000,7 +1004,7 @@ function addPlace(){
 }
 function deletePlace(id){
   if(!confirm(currentLang==='en'?'Delete this place?':'هتحذف المكان ده؟'))return;
-  places=places.filter(p=>p.id!==id);shifts=shifts.filter(s=>s.placeId!==id);delete placeTax[id];
+  places=places.filter(p=>p.id!==id);shifts=shifts.filter(s=>s.placeId!==id);delete placeTax[id];delete placeDiscount[id];
   save();renderPlaces();
 }
 function renderPlaces(){
@@ -1301,6 +1305,8 @@ function renderSummary(){
   document.getElementById('sal-extra').textContent=extraPay.toLocaleString()+cu;
   document.getElementById('sal-gross').textContent=gross.toLocaleString()+cu;
   document.getElementById('sal-tax').textContent='- '+taxAmt.toLocaleString()+cu;
+  document.getElementById('sal-discount').textContent='- 0'+cu;
+  document.getElementById('sal-total-discount').textContent='- '+taxAmt.toLocaleString()+cu;
   document.getElementById('sal-net').textContent=net.toLocaleString()+cu;
   document.getElementById('net-salary').textContent=net.toLocaleString();
   document.getElementById('tax-pct-lbl').textContent=taxPct;
@@ -1354,8 +1360,11 @@ function renderByPlace(){
   }
   let bpG=0,bpT=0;
   bpl.innerHTML=Object.entries(byPlace).map(([pid,d])=>{
-    const st=placeTax[pid]||0,ta=d.total*st/100,pn=d.total-ta;
-    bpG+=d.total;bpT+=ta;
+    const st=placeTax[pid]||0,ta=d.total*st/100;
+    const disc=placeDiscount[pid]||0;
+    const totalDeduct=ta+disc;
+    const pn=d.total-totalDeduct;
+    bpG+=d.total;bpT+=totalDeduct;
     let periodLabel = '';
     if(bm) periodLabel = `<span class="tag tc" style="font-size:.62rem;">${bm}</span>`;
     else if(bf||bt) periodLabel = `<span class="tag tc" style="font-size:.62rem;">${bf||'...'} ← ${bt||'...'}</span>`;
@@ -1372,11 +1381,12 @@ function renderByPlace(){
           <span class="tag tv">${isEn?'Base':'أساسي'}: ${d.base.toLocaleString()}${cu}</span>
           <span class="tag to">${isEn?'Extra':'إضافي'}: ${d.extra.toLocaleString()}${cu}</span>
         </div>
-        <div class="tax-inline"><label>🧾 ${isEn?'Tax':'ضريبة'} ${d.name}</label><input type="number" id="ptax-${pid}" value="${st}" min="0" max="100" onchange="updatePlaceTax('${pid}')"><span>%</span></div>
+        <div class="tax-inline"><label>🧾 ${isEn?'Tax':'ضريبة'}</label><input type="number" id="ptax-${pid}" value="${st}" min="0" max="100" onchange="updatePlaceTax('${pid}')"><span>%</span></div>
+        <div class="tax-inline" style="margin-top:6px;"><label>✂️ ${isEn?'Discount':'الخصومات'}</label><input type="number" id="pdisc-${pid}" value="${disc}" min="0" placeholder="0" onchange="updatePlaceDiscount('${pid}')"><span>${isEn?'EGP':'ج'}</span></div>
         <div class="pplace-result">
           <div>
-            <div style="font-size:.68rem;color:var(--muted);">${isEn?'Deduct':'خصم'} (${st}%)</div>
-            <div style="font-size:.85rem;font-weight:800;color:#ff6b6b;">- ${ta.toLocaleString()}${cu}</div>
+            <div style="font-size:.68rem;color:var(--muted);">${isEn?'Total Discounts':'إجمالي الخصومات'}</div>
+            <div style="font-size:.85rem;font-weight:800;color:#ff6b6b;">- ${totalDeduct.toLocaleString()}${cu}</div>
           </div>
           <div style="text-align:${isEn?'right':'left'};">
             <div style="font-size:.68rem;color:var(--muted);">${isEn?'Net':'الصافي'}</div>
@@ -1393,6 +1403,11 @@ function renderByPlace(){
 function updatePlaceTax(pid){
   const val=parseFloat(document.getElementById('ptax-'+pid).value)||0;
   placeTax[pid]=val;save();
+  renderByPlace();
+}
+function updatePlaceDiscount(pid){
+  const val=parseFloat(document.getElementById('pdisc-'+pid).value)||0;
+  placeDiscount[pid]=val;save();
   renderByPlace();
 }
 function printReport(){
@@ -1673,7 +1688,7 @@ const T = {
     date: 'التاريخ', pay_per: 'الأجر لكل', pay_price: 'السعر', count: 'العدد',
     extras: '⚡ الإضافي', notes: 'ملاحظات', save_shift: '💾 حفظ الشيفت',
     summary: 'ملخص المرتب', print: '<span id="print-btn-lbl">🖨️ طباعة</span>', export_pdf: '<span id="export-pdf-lbl">📤 تصدير ومشاركة</span>',
-    total: 'الإجمالي الكلي', tax: 'مجموع الضرائب', net: '💰 الصافي الكلي',
+    total: 'الإجمالي الكلي', tax: 'مجموع الخصومات', net: '💰 الصافي الكلي',
     all_places: 'كل الأماكن', by_place: 'لكل مكان',
     no_shifts: 'لا يوجد شيفتات مسجلة', shifts: 'شيفت',
     lang_switch: 'English', lang_icon: '🌐',
@@ -1700,7 +1715,7 @@ const T = {
     date: 'Date', pay_per: 'Pay Per', pay_price: 'Price', count: 'Count',
     extras: '⚡ Extras', notes: 'Notes', save_shift: '💾 Save Shift',
     summary: 'Salary Summary', print: '🖨️ Print', export_pdf: '📤 Export & Share',
-    total: 'Gross Total', tax: 'Total Tax', net: '💰 Net Total',
+    total: 'Gross Total', tax: 'Total Discounts', net: '💰 Net Total',
     all_places: 'All Places', by_place: 'Per Place',
     no_shifts: 'No shifts recorded', shifts: 'shifts',
     lang_switch: 'عربي', lang_icon: '🌐',
@@ -1828,7 +1843,7 @@ function applyLang(){
   s('lbl-bp-to',         isEn ? 'To Date'                : 'لتاريخ');
   s('lbl-bp-alltime',    isEn ? 'All Time'               : 'كل الوقت');
   s('lbl-bp-gross',      isEn ? '📊 Grand Total'         : '📊 الإجمالي الكلي');
-  s('lbl-bp-tax',        isEn ? '🧾 Total Tax'           : '🧾 مجموع الضرائب');
+  s('lbl-bp-tax',        isEn ? '✂️ Total Discounts'       : '✂️ مجموع الخصومات');
   s('lbl-bp-net',        isEn ? '💰 Net Total'           : '💰 الصافي الكلي');
 
   // tax row label (has inner span so handle separately)
@@ -1939,7 +1954,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Register SW
   // Service Worker — تحديث تلقائي فور رفع نسخة جديدة
   if('serviceWorker' in navigator){
-    const CACHE_VERSION = 'v20260301000100';
+    const CACHE_VERSION = 'v20260301000500';
     const swCode = `
       const CACHE = '${CACHE_VERSION}';
       const OFFLINE_ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
