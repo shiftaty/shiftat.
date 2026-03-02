@@ -2276,9 +2276,13 @@ document.addEventListener('visibilitychange',()=>{
     document.body.style.filter='blur(20px)';
   } else {
     setTimeout(()=>{ document.body.style.filter=''; }, 50);
+    // فقط اعرض اللوك لو "تذكرني" مش محفوظ
     const session = localStorage.getItem('sj_lock_session');
+    const st      = localStorage.getItem('sj_lock_st');
     const phone   = localStorage.getItem('sj_lock_phone_h');
-    if(phone && session !== '1') showLockScreen();
+    if(phone && !(session && session === st && session.length > 10)){
+      showLockScreen();
+    }
   }
 });
 
@@ -2313,23 +2317,29 @@ async function lockSubmit(){
   const savedHash = localStorage.getItem('sj_lock_phone_h');
   const inputHash = await _sha256(inp + _SALT);
   if(!savedHash){
-    // أول مرة — حفظ الـ hash بس (مش الرقم نفسه!)
+    // أول مرة — حفظ الـ hash
     localStorage.setItem('sj_lock_phone_h', inputHash);
     const remember = document.getElementById('lock-remember').checked;
-    const sessionToken = await _sha256(inputHash + Date.now());
-    if(remember) localStorage.setItem('sj_lock_session', sessionToken);
-    localStorage.setItem('sj_lock_st', remember ? sessionToken : '');
+    const sessionToken = await _sha256(inputHash + _SALT + 'session');
+    if(remember){
+      localStorage.setItem('sj_lock_session', sessionToken);
+      localStorage.setItem('sj_lock_st', sessionToken);
+    } else {
+      localStorage.removeItem('sj_lock_session');
+      localStorage.setItem('sj_lock_st', '');
+    }
     hideLockScreen();
   } else {
     if(inputHash === savedHash){
       _lockAttempts = 0;
       const remember = document.getElementById('lock-remember').checked;
-      const sessionToken = await _sha256(savedHash + Date.now());
+      const sessionToken = await _sha256(savedHash + _SALT + 'session');
       if(remember){
         localStorage.setItem('sj_lock_session', sessionToken);
         localStorage.setItem('sj_lock_st', sessionToken);
       } else {
         localStorage.removeItem('sj_lock_session');
+        localStorage.setItem('sj_lock_st', '');
       }
       hideLockScreen();
     } else {
@@ -2348,6 +2358,11 @@ function showLockScreen(){
   el.style.display='flex';
   document.getElementById('lock-input').value='';
   document.getElementById('lock-error').textContent='';
+  // لو في session محفوظ (تذكرني) → اشيك الـ checkbox تلقائياً
+  const session = localStorage.getItem('sj_lock_session');
+  const st      = localStorage.getItem('sj_lock_st');
+  const rememberCb = document.getElementById('lock-remember');
+  if(rememberCb) rememberCb.checked = !!(session && session === st && session.length > 10);
   setTimeout(()=>{ try{ document.getElementById('lock-input').focus(); }catch(e){} }, 300);
 }
 
