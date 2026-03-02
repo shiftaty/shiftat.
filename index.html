@@ -1350,14 +1350,20 @@ function renderSummary(){
   const gross=basePay+extraPay;
   const taxPct=parseFloat(document.getElementById('tax-pct').value)||0;
   const taxAmt=gross*taxPct/100;
-  const net=gross-taxAmt;
+  // احسب إجمالي الخصومات من كل الأماكن الموجودة في القائمة
+  const discAmt = list.reduce((a,s)=>{ const k=s.placeId+''; return a+(placeDiscount[k]||0); }, 0);
+  // لتجنب تكرار خصم نفس المكان أكثر من مرة، نحسب الخصم مرة واحدة لكل مكان
+  const uniquePlaceIds = [...new Set(list.map(s=>s.placeId+''))];
+  const totalDiscAmt = uniquePlaceIds.reduce((a,pid)=>a+(placeDiscount[pid]||0),0);
+  const totalDeduct = taxAmt + totalDiscAmt;
+  const net=gross-totalDeduct;
   const cu = currentLang==='en' ? ' EGP' : ' ج';
   document.getElementById('sal-base').textContent=basePay.toLocaleString()+cu;
   document.getElementById('sal-extra').textContent=extraPay.toLocaleString()+cu;
   document.getElementById('sal-gross').textContent=gross.toLocaleString()+cu;
   document.getElementById('sal-tax').textContent='- '+taxAmt.toLocaleString()+cu;
-  document.getElementById('sal-discount').textContent='- 0'+cu;
-  document.getElementById('sal-total-discount').textContent='- '+taxAmt.toLocaleString()+cu;
+  document.getElementById('sal-discount').textContent='- '+totalDiscAmt.toLocaleString()+cu;
+  document.getElementById('sal-total-discount').textContent='- '+totalDeduct.toLocaleString()+cu;
   document.getElementById('sal-net').textContent=net.toLocaleString()+cu;
   document.getElementById('net-salary').textContent=net.toLocaleString();
   document.getElementById('tax-pct-lbl').textContent=taxPct;
@@ -1488,7 +1494,8 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
     const color = d.color;
     const st2 = placeTax[pid]||0;
     const ta = d.total * st2 / 100;
-    const pn = d.total - ta;
+    const disc2 = placeDiscount[pid]||0;
+    const pn = d.total - ta - disc2;
 
     let rowsHTML = '';
     d.shifts.forEach((s, i)=>{
@@ -1519,7 +1526,7 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
           <tr style="background:#f0f4ff;">
             <td colspan="2" style="padding:14px 18px;font-size:14px;font-weight:900;font-family:${F};color:#333;">
               💰 <span style="color:${color};">${isEn?'Net:':'الصافي:'}</span>
-              ${st2>0?`<span style="color:#999;font-size:11px;font-weight:400;"> (${isEn?'after':'بعد'} ${st2}% ${isEn?'tax':'ضريبة'})</span>`:''}
+              ${(st2>0||disc2>0)?`<span style="color:#999;font-size:11px;font-weight:400;"> (${isEn?'after':'بعد'}${st2>0?` ${st2}% ${isEn?'tax':'ضريبة'}`:''}${disc2>0?` + ${disc2.toLocaleString()} ${isEn?'EGP discount':'ج خصم'}`:''})</span>`:''}
             </td>
             <td style="padding:14px 18px;font-size:16px;font-weight:900;font-family:${F};color:${color};text-align:${isEn?'right':'left'};white-space:nowrap;">${pn.toLocaleString()} ${isEn?'EGP':'ج'}</td>
           </tr>
@@ -1560,6 +1567,7 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
       <div style="font-size:14px;color:rgba(255,255,255,0.75);font-family:${F};margin-bottom:12px;">💰 ${isEn?'Net Salary:':'صافي المرتب:'}</div>
       <div style="font-size:50px;font-weight:900;color:#00e676;font-family:${F};line-height:1.1;letter-spacing:1px;">${netTotal.toLocaleString()} ${isEn?'EGP':'جنيه'}</div>
       ${taxAmt>0?`<div style="font-size:13px;color:rgba(255,180,180,0.9);font-family:${F};margin-top:10px;">${isEn?'Tax Deduction':'خصم ضريبة'} (${taxPct}%): ${taxAmt.toLocaleString()} ${isEn?'EGP':'ج'}</div>`:''}
+      ${(()=>{ const uniquePids=Object.keys(byPlace); const totalD=uniquePids.reduce((a,pid)=>a+(placeTax[pid]?0:0)+(placeDiscount[pid]||0),0); return totalD>0?`<div style="font-size:13px;color:rgba(255,180,180,0.9);font-family:${F};margin-top:6px;">${isEn?'Total Discounts':'إجمالي الخصومات'}: ${totalD.toLocaleString()} ${isEn?'EGP':'ج'}</div>`:''; })()} 
     </div>
 
     <!-- PLACES -->
@@ -1600,7 +1608,9 @@ async function exportAndShare(){
   const taxPct     = parseFloat(document.getElementById('tax-pct')?.value)||0;
   const grossTotal = list.reduce((a,s)=>a+s.total, 0);
   const taxAmt     = grossTotal * taxPct / 100;
-  const netTotal   = grossTotal - taxAmt;
+  const uniquePlaceIds3 = [...new Set(list.map(s=>s.placeId+''))];
+  const totalDiscAmt3   = uniquePlaceIds3.reduce((a,pid)=>a+(placeDiscount[pid]||0),0);
+  const netTotal   = grossTotal - taxAmt - totalDiscAmt3;
 
   showToast(isEn?'📸 Generating...':'📸 جاري التوليد...');
 
@@ -1716,7 +1726,9 @@ function _buildAndOpenReport(autoPrint){
   const taxPct     = parseFloat(document.getElementById('tax-pct')?.value)||0;
   const grossTotal = list.reduce((a,s)=>a+s.total, 0);
   const taxAmt     = grossTotal * taxPct / 100;
-  const netTotal   = grossTotal - taxAmt;
+  const uniquePlaceIds2 = [...new Set(list.map(s=>s.placeId+''))];
+  const totalDiscAmt2   = uniquePlaceIds2.reduce((a,pid)=>a+(placeDiscount[pid]||0),0);
+  const netTotal   = grossTotal - taxAmt - totalDiscAmt2;
 
   const html = _buildReportHTML(isEn, dir2, period, taxPct, grossTotal, taxAmt, netTotal, list, byPlace, placeTax, autoPrint);
   const win  = window.open('','_blank');
