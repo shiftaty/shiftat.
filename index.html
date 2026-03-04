@@ -293,22 +293,24 @@
 <!-- ══ LOCK SCREEN ══ -->
 <div id="lock-screen" style="display:none;position:fixed;inset:0;z-index:99999;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:30px;">
   <div style="width:100%;max-width:360px;text-align:center;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+      <div onclick="lockToggleLang()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:5px 14px;cursor:pointer;font-size:.78rem;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:6px;-webkit-user-select:none;user-select:none;">
+        🌐 <span id="lock-lang-label">English</span>
+      </div>
+    </div>
     <div style="font-size:3.5rem;margin-bottom:16px;">🔐</div>
-    <div style="font-size:1.5rem;font-weight:900;color:var(--cyan);margin-bottom:6px;">شيفتاتي</div>
-    <div style="font-size:.85rem;color:var(--muted);margin-bottom:32px;">أدخل رقم تليفونك للدخول</div>
+    <div style="font-size:1.5rem;font-weight:900;color:var(--cyan);margin-bottom:6px;font-family:Arial Black,Arial;letter-spacing:2px;">SHIFTATY</div>
+    <div id="lock-subtitle" style="font-size:.85rem;color:var(--muted);margin-bottom:32px;">أدخل رقم تليفونك للدخول</div>
     <div style="background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:24px;">
-      <div style="font-size:.75rem;color:var(--muted);font-weight:700;margin-bottom:10px;text-align:right;">📱 رقم التليفون</div>
+      <div id="lock-phone-lbl" style="font-size:.75rem;color:var(--muted);font-weight:700;margin-bottom:10px;text-align:right;">📱 رقم التليفون</div>
       <input id="lock-input" type="tel" placeholder="01xxxxxxxxx" maxlength="11"
         style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:14px 16px;color:var(--text);font-family:Cairo,sans-serif;font-size:1.2rem;outline:none;text-align:center;letter-spacing:3px;box-sizing:border-box;"
         oninput="lockInputChanged()" onkeydown="if(event.key==='Enter')lockSubmit()">
       <div id="lock-error" style="color:var(--red);font-size:.78rem;margin-top:8px;min-height:20px;"></div>
-      <button onclick="lockSubmit()" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:13px;color:#fff;font-family:Cairo,sans-serif;font-weight:900;font-size:1rem;cursor:pointer;">دخول ⚡</button>
-      <div style="margin-top:18px;display:flex;align-items:center;gap:8px;justify-content:center;">
-        <input type="checkbox" id="lock-remember" style="width:16px;height:16px;accent-color:var(--cyan);cursor:pointer;">
-        <label for="lock-remember" style="font-size:.82rem;color:var(--muted);cursor:pointer;">تذكرني (ما تسألنيش تاني)</label>
-      </div>
+      <button id="lock-enter-btn" onclick="lockSubmit()" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:13px;color:#fff;font-family:Cairo,sans-serif;font-weight:900;font-size:1rem;cursor:pointer;">دخول ⚡</button>
+      <input type="checkbox" id="lock-remember" checked style="display:none;">
     </div>
-    <div style="margin-top:20px;font-size:.72rem;color:var(--muted);opacity:.6;">🔒 بياناتك محمية على جهازك بس</div>
+    <div id="lock-privacy-note" style="margin-top:20px;font-size:.72rem;color:var(--muted);opacity:.6;">🔒 بياناتك محمية على جهازك بس</div>
   </div>
 </div>
 
@@ -1957,6 +1959,11 @@ let currentLang = localStorage.getItem('sj_lang') || 'ar';
 const T = {
   ar: {
     subtitle: 'تتبع ساعات عملك وأرباحك في كل مكان',
+    lock_subtitle: 'أدخل رقم تليفونك للدخول',
+    lock_phone_lbl: '📱 رقم التليفون',
+    lock_enter_btn: 'دخول ⚡',
+    lock_privacy: '🔒 بياناتك محمية على جهازك بس',
+    lock_lang_label: 'English',
     nav_summary: 'الملخص', nav_log: 'السجل', nav_shift: 'شيفت', nav_places: 'الأماكن',
     add_place: 'إضافة مكان عمل جديد', place_name: 'اسم المكان', pay_type: 'نوع الأجر',
     price: 'السعر (جنيه)', add_place_btn: '🏥 إضافة المكان',
@@ -1984,6 +1991,11 @@ const T = {
   },
   en: {
     subtitle: 'Track your work hours & earnings everywhere',
+    lock_subtitle: 'Enter your phone number to continue',
+    lock_phone_lbl: '📱 Phone Number',
+    lock_enter_btn: 'Enter ⚡',
+    lock_privacy: '🔒 Your data is stored on your device only',
+    lock_lang_label: 'عربي',
     nav_summary: 'Summary', nav_log: 'Log', nav_shift: 'Shift', nav_places: 'Places',
     add_place: 'Add New Workplace', place_name: 'Place Name', pay_type: 'Pay Type',
     price: 'Price (EGP)', add_place_btn: '🏥 Add Place',
@@ -2019,6 +2031,29 @@ function toggleLang(){
   applyLang();
 }
 
+function lockToggleLang(){
+  currentLang = currentLang === 'ar' ? 'en' : 'ar';
+  localStorage.setItem('sj_lang', currentLang);
+  applyLang();
+  applyLockLang();
+}
+
+function applyLockLang(){
+  const isEn = currentLang === 'en';
+  const s = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  const lockDir = isEn ? 'ltr' : 'rtl';
+  const lockScreen = document.getElementById('lock-screen');
+  if(lockScreen) lockScreen.style.direction = lockDir;
+  s('lock-lang-label',   isEn ? 'عربي'                                    : 'English');
+  s('lock-subtitle',     isEn ? 'Enter your phone number to continue'      : 'أدخل رقم تليفونك للدخول');
+  s('lock-phone-lbl',    isEn ? '📱 Phone Number'                          : '📱 رقم التليفون');
+  s('lock-enter-btn',    isEn ? 'Enter ⚡'                                  : 'دخول ⚡');
+  s('lock-privacy-note', isEn ? '🔒 Your data is stored on your device only': '🔒 بياناتك محمية على جهازك بس');
+  // error messages reset on lang change
+  const errEl = document.getElementById('lock-error');
+  if(errEl) errEl.textContent = '';
+}
+
 function applyLang(){
   const isEn = currentLang === 'en';
   const E = T.en, A = T.ar;
@@ -2026,6 +2061,9 @@ function applyLang(){
   document.getElementById('lang-label').textContent = isEn ? 'عربي' : 'English';
   document.documentElement.dir = isEn ? 'ltr' : 'rtl';
   document.documentElement.lang = currentLang;
+
+  // ترجمة شاشة القفل
+  applyLockLang();
 
   // helper — set text if element exists
   const s = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
@@ -2276,13 +2314,17 @@ document.addEventListener('visibilitychange',()=>{
     document.body.style.filter='blur(20px)';
   } else {
     setTimeout(()=>{ document.body.style.filter=''; }, 50);
-    // فقط اعرض اللوك لو "تذكرني" مش محفوظ
+    const phone   = localStorage.getItem('sj_lock_phone_h');
+    if(!phone) return;
+    // ① تحقق من sessionStorage أولاً (الأهم على iOS)
+    const runtimeSession = sessionStorage.getItem('sj_runtime_session');
+    if(runtimeSession && runtimeSession.length > 10) return;
+    // ② تحقق من تذكرني في localStorage
     const session = localStorage.getItem('sj_lock_session');
     const st      = localStorage.getItem('sj_lock_st');
-    const phone   = localStorage.getItem('sj_lock_phone_h');
-    if(phone && !(session && session === st && session.length > 10)){
-      showLockScreen();
-    }
+    if(session && session === st && session.length > 10) return;
+    // مفيش session صالح — اعرض اللوك
+    showLockScreen();
   }
 });
 
@@ -2321,6 +2363,8 @@ async function lockSubmit(){
     localStorage.setItem('sj_lock_phone_h', inputHash);
     const remember = document.getElementById('lock-remember').checked;
     const sessionToken = await _sha256(inputHash + _SALT + 'session');
+    // دايمًا نحفظ في sessionStorage (يشتغل على iOS)
+    sessionStorage.setItem('sj_runtime_session', sessionToken);
     if(remember){
       localStorage.setItem('sj_lock_session', sessionToken);
       localStorage.setItem('sj_lock_st', sessionToken);
@@ -2334,6 +2378,8 @@ async function lockSubmit(){
       _lockAttempts = 0;
       const remember = document.getElementById('lock-remember').checked;
       const sessionToken = await _sha256(savedHash + _SALT + 'session');
+      // دايمًا نحفظ في sessionStorage (يشتغل على iOS)
+      sessionStorage.setItem('sj_runtime_session', sessionToken);
       if(remember){
         localStorage.setItem('sj_lock_session', sessionToken);
         localStorage.setItem('sj_lock_st', sessionToken);
@@ -2358,11 +2404,8 @@ function showLockScreen(){
   el.style.display='flex';
   document.getElementById('lock-input').value='';
   document.getElementById('lock-error').textContent='';
-  // لو في session محفوظ (تذكرني) → اشيك الـ checkbox تلقائياً
-  const session = localStorage.getItem('sj_lock_session');
-  const st      = localStorage.getItem('sj_lock_st');
-  const rememberCb = document.getElementById('lock-remember');
-  if(rememberCb) rememberCb.checked = !!(session && session === st && session.length > 10);
+  // تطبيق اللغة الحالية على شاشة القفل
+  applyLockLang();
   setTimeout(()=>{ try{ document.getElementById('lock-input').focus(); }catch(e){} }, 300);
 }
 
@@ -2381,22 +2424,36 @@ async function changeLockPhone(){
   const newHash = await _sha256(newPhone + _SALT);
   localStorage.setItem('sj_lock_phone_h', newHash);
   localStorage.removeItem('sj_lock_session');
+  sessionStorage.removeItem('sj_runtime_session');
   showToast('✅ تم تغيير رقم القفل بنجاح');
 }
 
-function checkLock(){
+async function checkLock(){
   const phoneHash = localStorage.getItem('sj_lock_phone_h');
   if(!phoneHash){ showLockScreen(); return; }
-  const session  = localStorage.getItem('sj_lock_session');
-  const st       = localStorage.getItem('sj_lock_st');
+
+  // ① تحقق من sessionStorage أولاً (يشتغل حتى لو localStorage اتمسح على iOS)
+  const runtimeSession = sessionStorage.getItem('sj_runtime_session');
+  if(runtimeSession && runtimeSession.length > 10){
+    // تحقق إن الـ session ينتمي لنفس الرقم المحفوظ
+    const expectedToken = await _sha256(phoneHash + _SALT + 'session');
+    if(runtimeSession === expectedToken){ hideLockScreen(); return; }
+  }
+
+  // ② تحقق من localStorage (تذكرني)
+  const session = localStorage.getItem('sj_lock_session');
+  const st      = localStorage.getItem('sj_lock_st');
   if(session && session === st && session.length > 10){
+    // استعد الـ sessionStorage عشان المرات الجاية أسرع
+    sessionStorage.setItem('sj_runtime_session', session);
     hideLockScreen(); return;
   }
+
   showLockScreen();
 }
 
 document.addEventListener('DOMContentLoaded', async ()=>{
-  checkLock();
+  await checkLock();
   await _loadData();
   // لو في ?reset في الـ URL — امسح كل حاجة وابدأ من الأول
   if(window.location.search.includes('reset')){
@@ -2449,7 +2506,12 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // Check activation on load
   checkActivation();
   // تطبيق اللغة المحفوظة
-  if(localStorage.getItem('sj_lang') === 'en') applyLang();
+  // تطبيق اللغة المحفوظة (حتى على شاشة القفل)
+  if(localStorage.getItem('sj_lang') === 'en'){
+    applyLang();
+  } else {
+    applyLockLang(); // تأكد إن شاشة القفل عربي من الأول
+  }
 
   // Register SW — ملف sw.js منفصل عشان الـ offline يشتغل صح
   if('serviceWorker' in navigator){
