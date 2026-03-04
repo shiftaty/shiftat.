@@ -310,7 +310,7 @@
       <button id="lock-enter-btn" onclick="lockSubmit()" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:13px;color:#fff;font-family:Cairo,sans-serif;font-weight:900;font-size:1rem;cursor:pointer;">دخول ⚡</button>
       <input type="checkbox" id="lock-remember" checked style="display:none;">
     </div>
-    <div id="lock-privacy-note" style="margin-top:20px;font-size:.72rem;color:var(--muted);opacity:.6;">🔒 بياناتك محمية على جهازك بس</div>
+    <div id="lock-privacy-note" style="margin-top:20px;font-size:.72rem;color:var(--muted);opacity:.6;">🔒 بياناتك محفوظة على جهازك فقط</div>
   </div>
 </div>
 
@@ -1962,7 +1962,7 @@ const T = {
     lock_subtitle: 'أدخل رقم تليفونك للدخول',
     lock_phone_lbl: '📱 رقم التليفون',
     lock_enter_btn: 'دخول ⚡',
-    lock_privacy: '🔒 بياناتك محمية على جهازك بس',
+    lock_privacy: '🔒 بياناتك محفوظة على جهازك فقط',
     lock_lang_label: 'English',
     nav_summary: 'الملخص', nav_log: 'السجل', nav_shift: 'شيفت', nav_places: 'الأماكن',
     add_place: 'إضافة مكان عمل جديد', place_name: 'اسم المكان', pay_type: 'نوع الأجر',
@@ -2048,7 +2048,7 @@ function applyLockLang(){
   s('lock-subtitle',     isEn ? 'Enter your phone number to continue'      : 'أدخل رقم تليفونك للدخول');
   s('lock-phone-lbl',    isEn ? '📱 Phone Number'                          : '📱 رقم التليفون');
   s('lock-enter-btn',    isEn ? 'Enter ⚡'                                  : 'دخول ⚡');
-  s('lock-privacy-note', isEn ? '🔒 Your data is stored on your device only': '🔒 بياناتك محمية على جهازك بس');
+  s('lock-privacy-note', isEn ? '🔒 Your data is stored on your device only': '🔒 بياناتك محفوظة على جهازك فقط');
   // error messages reset on lang change
   const errEl = document.getElementById('lock-error');
   if(errEl) errEl.textContent = '';
