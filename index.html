@@ -1555,10 +1555,11 @@ function renderByPlace(){
     if(!byPlace[k]){
       const p=places.find(x=>x.id==s.placeId);
       byPlace[k]={name:s.placeName,placeId:s.placeId,base:0,extra:0,total:0,count:0,
-        payType:s.payType, unitName: s.customUnit||(p&&p.customName)||null, unitCount:0};
+        payType:s.payType, unitName: s.customUnit||(p&&p.customName)||null, unitCount:0, notes:[]};
     }
     byPlace[k].base+=s.basePay;byPlace[k].extra+=s.extraPay;byPlace[k].total+=s.total;byPlace[k].count++;
     byPlace[k].unitCount+=(s.count||0);
+    if(s.note && s.note.trim()) byPlace[k].notes.push({date:s.date, note:s.note.trim()});
   });
 
   const isEn = currentLang === 'en';
@@ -1582,10 +1583,10 @@ function renderByPlace(){
     return `<div class="pplace-card">
       <div class="pplace-head">
         <div>
-          <div class="pplace-name">🏥 ${d.name} <span class="tag tc" dir="ltr">${(()=>{
+          <div class="pplace-name">🏥 ${d.name} <span class="tag tc" dir="${isEn?'ltr':'rtl'}">${(()=>{
             const PT={hour:isEn?'hr':'ساعة', shift:isEn?'shift':'شيفت', case:isEn?'case':'حالة', custom:isEn?'other':'آخر'};
             const unit = d.payType==='custom' ? (d.unitName||(isEn?'other':'آخر')) : (PT[d.payType]||(isEn?'shift':'شيفت'));
-            return d.unitCount>0 ? `${d.unitCount} ${unit}` : `${d.count} ${isEn?'shifts':'شيفت'}`;
+            return d.unitCount>0 ? `${d.unitCount} ${unit}` : `${isEn?d.count+' shifts':d.count+' شيفت'}`;
           })()}</span></div>
           <div style="margin-top:4px;">${periodLabel}</div>
         </div>
@@ -1596,6 +1597,7 @@ function renderByPlace(){
           <span class="tag tv">${isEn?'Base':'أساسي'}: ${d.base.toLocaleString()}${cu}</span>
           <span class="tag to">${isEn?'Extra':'إضافي'}: ${d.extra.toLocaleString()}${cu}</span>
         </div>
+        ${d.notes&&d.notes.length?`<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">${d.notes.map(n=>`<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:4px 10px;font-size:.72rem;color:#a78bfa;font-family:Cairo,sans-serif;">💬 <span style="color:var(--muted);font-size:.68rem;">${fmtDate(n.date)}</span> ${n.note}</span>`).join('')}</div>`:''}
         <div class="tax-inline"><label>🧾 ${isEn?'Tax':'ضريبة'}</label><input type="number" id="ptax-${pid}" value="${st}" min="0" max="100" onchange="updatePlaceTax('${pid}')"><span>%</span></div>
         <div class="tax-inline" style="margin-top:6px;"><label>✂️ ${isEn?'Discount':'الخصومات'}</label><input type="number" id="pdisc-${pid}" value="${disc}" min="0" placeholder="0" onchange="updatePlaceDiscount('${pid}')"><span>${isEn?'EGP':'ج'}</span></div>
         <div class="pplace-result">
@@ -1667,9 +1669,10 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
       if(s.exOC) det.push(`${s.exOC} ${s.exOtherName||'أخرى'}`);
       if(s.customExtras) s.customExtras.forEach(r=>{ if(r.count&&r.name) det.push(`${r.count} ${r.name}`); });
       const rowBg = i%2===0 ? '#ffffff' : '#fafbff';
+      const noteHTML = s.note ? `<div style="margin-top:5px;font-size:11px;color:#7c3aed;font-family:${F};background:#f3f0ff;border-radius:6px;padding:3px 8px;display:inline-block;">💬 ${s.note}</div>` : '';
       rowsHTML += `<tr style="background:${rowBg};">
           <td style="padding:14px 18px;border-bottom:1px solid #f0f2f8;color:#333;font-size:13px;font-family:${F};font-weight:600;white-space:nowrap;">${fmtDate(s.date)}</td>
-          <td style="padding:14px 18px;border-bottom:1px solid #f0f2f8;color:#666;font-size:12px;font-family:${F};">${det.join(' · ')}</td>
+          <td style="padding:14px 18px;border-bottom:1px solid #f0f2f8;color:#666;font-size:12px;font-family:${F};">${det.join(' · ')}${noteHTML}</td>
           <td style="padding:14px 18px;border-bottom:1px solid #f0f2f8;color:#1a7a3e;font-size:15px;font-weight:900;font-family:${F};text-align:${isEn?'right':'left'};white-space:nowrap;">${(s.total||0).toLocaleString()} ${isEn?'EGP':'ج'}</td>
         </tr>`;
     });
