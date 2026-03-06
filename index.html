@@ -1455,7 +1455,12 @@ async function importBackup(event){
     if(data.lang)       localStorage.setItem('sj_lang',         data.lang);
     if(data.lock_phone) localStorage.setItem('sj_lock_phone_h', data.lock_phone);
     showToast(isEn ? '✅ Data restored successfully!' : '✅ تم استعادة البيانات بنجاح!');
-    renderPlaces(); populateSels(); renderSummary();
+    // تحديث اللغة لو النسخة كانت بلغة مختلفة
+    if(data.lang && data.lang !== currentLang){
+      currentLang = data.lang;
+      applyLang();
+    }
+    renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderStats();
   } catch(e){
     showToast(isEn ? '❌ Failed to read file' : '❌ فشل قراءة الملف');
   }
@@ -1591,6 +1596,7 @@ function clearShiftsOnly(){
     save();
     renderShifts();
     renderSummary();
+    renderStats();
     showToast(isEn?'✅ All shifts deleted':'✅ تم مسح كل الشيفتات');
   });
 }
@@ -1627,7 +1633,7 @@ function deletePlace(id){
   const isEn = currentLang === 'en';
   showConfirm(isEn?'Delete this place?':'هتحذف المكان ده؟', ()=>{
     places=places.filter(p=>p.id!==id);shifts=shifts.filter(s=>s.placeId!==id);delete placeTax[id];delete placeDiscount[id];
-    save();renderPlaces();
+    save();renderPlaces();populateSels();renderShifts();renderSummary();renderStats();
   });
 }
 function renderPlaces(){
@@ -1870,7 +1876,14 @@ function editShift(id){id=parseInt(id);
   if(!s)return;
   // ملء أماكن العمل
   const sel=document.getElementById('es-place');
-  sel.innerHTML=places.map(p=>'<option value="'+p.id+'"'+(p.id===s.placeId?' selected':'')+'>'+p.name+'</option>').join('');
+  sel.innerHTML='';
+  places.forEach(p=>{
+    const opt=document.createElement('option');
+    opt.value=p.id;
+    opt.textContent=p.name;
+    if(p.id===s.placeId) opt.selected=true;
+    sel.appendChild(opt);
+  });
   // ملء البيانات
   document.getElementById('es-id').value=id;
   document.getElementById('es-date').value=s.date;
@@ -3572,7 +3585,7 @@ function getCurrency(){
     const sym = parts[0];
     const nameAr = parts[1] || '';
     // map عربي → إنجليزي للرموز العربية
-    const symMap = {'ج':'EGP','ر.س':'SAR','د.إ':'AED','ج.م':'EGP','ج.س':'SDG','د.ك':'KWD','ر.ق':'QAR','د.ب':'BHD','ر.ع.':'OMR'};
+    const symMap = {'ج':'EGP','ر.س':'SAR','د.إ':'AED','ج.م':'EGP','ج.س':'SDG','د.ك':'KWD','ر.ق':'QAR','د.ب':'BHD','ر.ع':'OMR','ر.ع.':'OMR','د.أ':'JOD','ل.ل':'LBP','£':'GBP','€':'EUR','$':'USD'};
     return symMap[sym] || sym;
   }
   return parts[0];
