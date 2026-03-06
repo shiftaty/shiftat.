@@ -2324,12 +2324,14 @@ async function exportAndShare(){
 
     // خطوة 2: رفع الجودة لـ Full HD (1920px عرض) عبر Canvas
     const SCALE = 1920 / BASE_W; // ≈ 2.667x
+    const _tmpUrl = URL.createObjectURL(blob);
     const img = await new Promise((res, rej) => {
       const i = new Image();
       i.onload = () => res(i);
       i.onerror = rej;
-      i.src = URL.createObjectURL(blob);
+      i.src = _tmpUrl;
     });
+    URL.revokeObjectURL(_tmpUrl);
 
     const canvas = document.createElement('canvas');
     canvas.width  = Math.round(BASE_W * SCALE);      // 1920
