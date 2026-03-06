@@ -947,7 +947,11 @@
 
     <input class="act-input" id="act-code-input" placeholder="أدخل كود التفعيل هنا" maxlength="20" 
       style="margin-bottom:12px;"
-      onkeydown="if(event.key==='Enter'){event.preventDefault();tryActivate();}">
+      oncontextmenu="event.stopPropagation();"
+      onpaste="event.stopPropagation();"
+      oncopy="event.stopPropagation();"
+      oncut="event.stopPropagation();"
+      onkeydown="event.stopPropagation();if(event.key==='Enter'){event.preventDefault();tryActivate();}">
     <button class="act-activate-btn" type="button" onclick="tryActivate()" 
       style="position:sticky;bottom:0;z-index:10;">
       🔓 تفعيل النسخة الكاملة
@@ -2607,8 +2611,15 @@ async function _secGet(key, fallback='null'){
 })();
 
 // ── 7) Anti Right-Click & Text Select ──
-document.addEventListener('contextmenu', e=>e.preventDefault());
-document.addEventListener('selectstart', e=>e.preventDefault());
+// الحماية على كل التطبيق — ماعدا خانة التفعيل
+document.addEventListener('contextmenu', e=>{
+  if(e.target && e.target.id === 'act-code-input') return;
+  e.preventDefault();
+});
+document.addEventListener('selectstart', e=>{
+  if(e.target && e.target.id === 'act-code-input') return;
+  e.preventDefault();
+});
 
 // ── 8) Anti Screenshot hint (visual only on mobile) ──
 document.addEventListener('visibilitychange',()=>{
