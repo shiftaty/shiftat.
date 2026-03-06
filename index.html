@@ -373,7 +373,7 @@
   </div>
 
   <!-- Slides container -->
-  <div id="ob-slides" style="width:100%;height:100%;display:flex;transition:transform .4s cubic-bezier(.4,0,.2,1);will-change:transform;">
+  <div id="ob-slides" dir="ltr" style="width:100%;height:100%;display:flex;transition:transform .4s cubic-bezier(.4,0,.2,1);will-change:transform;">
 
     <!-- Slide 1 — مرحباً -->
     <div class="ob-slide" style="background:linear-gradient(160deg,#060b14 0%,#1a0a3d 50%,#0d2040 100%);">
@@ -801,7 +801,7 @@
 
     <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:6px;">
       <button onclick="changeLockPhone()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:7px 18px;color:var(--muted);font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;" id="lbl-change-lock">🔐 تغيير رقم القفل</button>
-      <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" id="lbl-contact-us" id="lbl-contact-us">💬 تواصل معنا</a>
+      <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" id="lbl-contact-us">💬 تواصل معنا</a>
     </div>
     <div style="margin-bottom:16px;">
       <button onclick="clearAllData()" style="width:100%;background:rgba(255,23,68,0.07);border:1px dashed rgba(255,23,68,0.3);border-radius:14px;padding:14px;color:var(--red);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" id="clear-all-btn">
@@ -1379,7 +1379,15 @@ async function save(){
   const pt = JSON.stringify(placeTax);
   const pd = JSON.stringify(placeDiscount);
 
-  // حفظ في 3 أماكن بالتوازي: مشفر + IndexedDB + plain
+  // plain backup أولاً بشكل sync عشان لو أي حاجة فشلت البيانات تفضل موجودة
+  try{
+    localStorage.setItem('sj_places_plain', p);
+    localStorage.setItem('sj_shifts_plain', s);
+    localStorage.setItem('sj_ptax_plain',   pt);
+    localStorage.setItem('sj_pdisc_plain',  pd);
+  }catch(e){}
+
+  // حفظ في مشفر + IndexedDB بالتوازي
   await Promise.all([
     _secSet('sj_places', p),
     _secSet('sj_shifts', s),
@@ -1790,7 +1798,7 @@ function saveShift(){
   const _cuF=document.getElementById('l-custom-unit-field');const _pgF=document.getElementById('pay-type-grid');
   if(_cuF) _cuF.style.display='none';if(_pgF){_pgF.classList.remove('g4');_pgF.classList.add('g3');}
   document.getElementById('extra-custom-rows').innerHTML='';
-  extraRowCount=0;;
+  extraRowCount=0;
   document.getElementById('l-fields').style.display='none';
   document.getElementById('l-no-place').style.display='block';
   document.getElementById('l-preview').style.display='none';
@@ -1887,7 +1895,7 @@ function saveEditShift(){
   if(idx===-1)return;
   const pid=parseInt(document.getElementById('es-place').value);
   const p=places.find(x=>x.id===pid);
-  if(!p){showToast('⚠️ اختر مكان العمل');return;}
+  if(!p){showToast('\u26a0\ufe0f \u0627\u062e\u062a\u0631 \u0645\u0643\u0627\u0646 \u0627\u0644\u0639\u0645\u0644');return;}
   const payType=document.getElementById('es-pay-type').value;
   const payPrice=parseFloat(document.getElementById('es-pay-price').value)||0;
   const count=parseFloat(document.getElementById('es-count').value)||0;
@@ -1900,14 +1908,25 @@ function saveEditShift(){
   const exOC=parseFloat(document.getElementById('es-exOC').value)||0;
   const exOP=parseFloat(document.getElementById('es-exOP').value)||0;
   const note=document.getElementById('es-note').value.trim();
+  const orig=shifts[idx];
+  const customUnit   = orig.customUnit   || '';
+  const exHourName   = orig.exHourName   || (currentLang==='en'?'Extra Hours':'\u0633\u0627\u0639\u0627\u062a \u0625\u0636\u0627\u0641\u064a\u0629');
+  const exCaseName   = orig.exCaseName   || (currentLang==='en'?'Regular Cases':'\u062d\u0627\u0644\u0627\u062a \u0639\u0627\u062f\u064a\u0629');
+  const exTechName   = orig.exTechName   || (currentLang==='en'?'Technique':'\u062a\u0643\u0646\u064a\u0643');
+  const exOtherName  = orig.exOtherName  || (currentLang==='en'?'Other Cases':'\u062d\u0627\u0644\u0627\u062a \u0623\u062e\u0631\u0649');
+  const customExtras = orig.customExtras || [];
+  const customExtrasPay = customExtras.reduce((s,r)=>s+(r.total||r.count*r.price||0),0);
   const basePay=payPrice*count;
-  const extraPay=exHC*exHP+exCC*exCP+exTC*exTP+exOC*exOP;
+  const extraPay=exHC*exHP+exCC*exCP+exTC*exTP+exOC*exOP+customExtrasPay;
   const total=basePay+extraPay;
-  shifts[idx]={...shifts[idx],placeId:pid,placeName:p.name,date:document.getElementById('es-date').value,payType,payPrice,count,exHC,exHP,exCC,exCP,exTC,exTP,exOC,exOP,extraPay,basePay,total,note};
+  shifts[idx]={...orig,placeId:pid,placeName:p.name,date:document.getElementById('es-date').value,
+    payType,payPrice,count,customUnit,
+    exHC,exHP,exHourName,exCC,exCP,exCaseName,exTC,exTP,exTechName,exOC,exOP,exOtherName,
+    customExtras,extraPay,basePay,total,note};
   save();
   document.getElementById('edit-shift-modal').classList.remove('show');
   renderShifts();
-  showToast((currentLang==='en'?'✅ Updated! Total: ':'✅ تم التعديل! الإجمالي: ')+total.toLocaleString()+(' '+getCurrency()));
+  showToast((currentLang==='en'?'\u2705 Updated! Total: ':'\u2705 \u062a\u0645 \u0627\u0644\u062a\u0639\u062f\u064a\u0644! \u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a: ')+total.toLocaleString()+(' '+getCurrency()));
 }
 
 // ── SUMMARY ──
@@ -2770,25 +2789,6 @@ function applyLang(){
   Object.entries(curOpts).forEach(([id,txt])=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
   loadCurrency();
 
-  // ── STATS PANEL ──
-  s('lbl-stats-title',        isEn?'Statistics'            :'الإحصائيات');
-  s('nav-stats-lbl',          isEn?'Stats'                 :'إحصائيات');
-  s('lbl-stat-income',        isEn?'💰 Total Income'       :'💰 إجمالي الدخل الكلي');
-  s('lbl-stat-shifts',        isEn?'📋 Total Shifts'       :'📋 عدد الشيفتات الكلي');
-  s('lbl-stat-avg-income',    isEn?'📅 Avg Monthly Income' :'📅 متوسط الدخل الشهري');
-  s('lbl-stat-avg-shifts',    isEn?'📈 Avg Shifts/Month'   :'📈 متوسط الشيفتات/شهر');
-  s('lbl-stat-best-month',    isEn?'🏆 Best Salary Month'  :'🏆 أعلى شهر في المرتب');
-  s('lbl-stat-best-place',    isEn?'🏥 Top Earning Place'  :'🏥 أكثر مكان دخلاً');
-  s('lbl-stat-monthly-chart', isEn?'📊 Monthly Income'     :'📊 الدخل الشهري');
-
-  // ── BACKUP SECTION ──
-  s('lbl-backup-title',   isEn?'💾 Backup'        :'💾 النسخ الاحتياطي');
-  s('lbl-backup-desc',    isEn?'Save & restore your data anytime — upload to Google Drive or iCloud.':'احفظ بياناتك واستعدها في أي وقت — يُنصح برفع الملف على Google Drive أو iCloud لحمايته.');
-  s('lbl-export-backup',  isEn?'📤 Export Backup' :'📤 تصدير نسخة');
-  s('lbl-import-backup',  isEn?'📥 Restore Backup':'📥 استعادة نسخة');
-  s('lbl-change-lock',    isEn?'🔐 Change Lock PIN':'🔐 تغيير رقم القفل');
-  s('lbl-contact-us',     isEn?'💬 Contact Us'    :'💬 تواصل معنا');
-
   // ── EDIT SHIFT MODAL ──
   s('lbl-edit-shift-title',isEn?'✏️ Edit Shift'      :'✏️ تعديل الشيفت');
   s('lbl-es-place',        isEn?'Workplace'           :'مكان العمل');
@@ -2862,8 +2862,13 @@ function applyLang(){
   s('lbl-admin-prev-codes',isEn?'Previous Codes:'             :'الأكواد السابقة:');
   const totalPre=document.getElementById('lbl-admin-total-pre');
   if(totalPre){
-    const cnt=document.getElementById('codes-count')?.textContent||'0';
-    totalPre.innerHTML=(isEn?'Total Codes: ':'إجمالي الأكواد: ')+'<span id="codes-count" style="color:var(--cyan);font-weight:800;">'+cnt+'</span>';
+    // نحدّث النص بدون innerHTML عشان مننشيش الـ span الموجود ونعمل duplicate id
+    const firstChild = totalPre.firstChild;
+    if(firstChild && firstChild.nodeType===3){
+      firstChild.textContent = isEn?'Total Codes: ':'إجمالي الأكواد: ';
+    } else {
+      totalPre.insertBefore(document.createTextNode(isEn?'Total Codes: ':'إجمالي الأكواد: '), totalPre.firstChild);
+    }
   }
 
   // ── NO SHIFTS YET ──
@@ -3382,7 +3387,7 @@ function checkBackupReminder(){
   const isEn = currentLang === 'en';
   const last = parseInt(localStorage.getItem('sj_last_backup') || '0');
   const now  = Date.now();
-  const days7 = 5 * 24 * 60 * 60 * 1000;
+  const days7 = 7 * 24 * 60 * 60 * 1000;
   const dismissed = parseInt(localStorage.getItem('sj_backup_dismissed') || '0');
   // لو اتعمل dismiss من أقل من يوم — متظهرش
   if(now - dismissed < 24 * 60 * 60 * 1000) return;
@@ -3426,12 +3431,16 @@ function showOnboarding(){
 function obGoTo(idx){
   obCurrent = idx;
   const slides = document.getElementById('ob-slides');
-  if(slides) slides.style.transform = `translateX(${idx * 100}%)`;
+  // ob-slides دايماً LTR عشان translateX يشتغل صح، لكن الـ content يورّث اتجاه الـ onboarding
+  if(slides) slides.style.transform = `translateX(${idx * -100}%)`;
   // dots
   for(let i=0;i<OB_TOTAL;i++){
     const d = document.getElementById('ob-dot-'+i);
     if(d){ d.classList.toggle('on', i===idx); }
   }
+  // زر السهم يتغير حسب اللغة
+  const nextBtn = document.getElementById('ob-next-btn');
+  if(nextBtn) nextBtn.textContent = currentLang === 'en' ? '›' : '‹';
   // hide skip + next on last slide
   const nav = document.getElementById('ob-nav');
   if(nav) nav.style.display = idx === OB_TOTAL-1 ? 'none' : 'flex';
@@ -3658,6 +3667,9 @@ function obToggleLang(){
 function applyObLang(){
   const T = OB_TEXT[currentLang] || OB_TEXT['ar'];
   const s = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
+  // تحديث اتجاه السهم حسب اللغة
+  const nextBtn = document.getElementById('ob-next-btn');
+  if(nextBtn) nextBtn.textContent = currentLang === 'en' ? '›' : '‹';
   s('ob-lang-label', T.langBtn);
   s('ob-s1-sub',     T.s1sub);
   s('ob-s1-desc',    T.s1desc);
