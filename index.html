@@ -1676,13 +1676,18 @@ function renderShifts(){
   const getShiftTypeLbl = s => { if(s.payType==='custom'){ if(s.customUnit) return s.customUnit; const p=places.find(x=>x.id==s.placeId); return p&&p.customName?p.customName:(isEn?'other':'آخر'); } return PT[s.payType]||''; };
   el.innerHTML=list.map(s=>{
     const tags=[];
-    const LRM = '\u200E'; // Left-to-Right Mark يثبت اتجاه الأرقام والرموز
-    const tagText = (count, unit, price, cur) => `${LRM}${count} ${unit} ${LRM}× ${LRM}${price} ${LRM}${cur}`;
-    if(s.count)tags.push(`<span class="tag tc" style="display:inline-block;direction:ltr;unicode-bidi:embed;">⏱️ ${tagText(s.count, getShiftTypeLbl(s), s.payPrice.toLocaleString(), getCurrency())}</span>`);
-    if(s.exHC) tags.push(`<span class="tag tv" style="display:inline-block;direction:ltr;unicode-bidi:embed;">⚡ ${s.exHC} ${s.exHourName||(isEn?'Extra Hours':'ساعات إضافية')}${s.exHP ? ` ${LRM}× ${LRM}${(s.exHP).toLocaleString()} ${LRM}${getCurrency()}` : ''}</span>`);
-    if(s.exCC) tags.push(`<span class="tag tg" style="display:inline-block;direction:ltr;unicode-bidi:embed;">🏥 ${s.exCC} ${s.exCaseName||(isEn?'Regular Cases':'حالات عادية')}${s.exCP ? ` ${LRM}× ${LRM}${(s.exCP).toLocaleString()} ${LRM}${getCurrency()}` : ''}</span>`);
-    if(s.exTC) tags.push(`<span class="tag to" style="display:inline-block;direction:ltr;unicode-bidi:embed;">🔬 ${s.exTC} ${s.exTechName||(isEn?'Technique':'تكنيك')}${s.exTP ? ` ${LRM}× ${LRM}${(s.exTP).toLocaleString()} ${LRM}${getCurrency()}` : ''}</span>`);
-    if(s.exOC) tags.push(`<span class="tag ty" style="display:inline-block;direction:ltr;unicode-bidi:embed;">🔷 ${s.exOC} ${s.exOtherName||(isEn?'Other Cases':'حالات أخرى')}${s.exOP ? ` ${LRM}× ${LRM}${(s.exOP).toLocaleString()} ${LRM}${getCurrency()}` : ''}</span>`);
+    const mkTag = (cls, icon, count, unit, price, cur) =>
+      `<span class="tag ${cls}" style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap;">` +
+      `<span>${icon}</span>` +
+      `<span dir="ltr" style="unicode-bidi:isolate;">${count}</span>` +
+      `<span dir="rtl" style="unicode-bidi:isolate;">${unit}</span>` +
+      (price ? `<span dir="ltr" style="unicode-bidi:isolate;">\u00D7</span><span dir="ltr" style="unicode-bidi:isolate;">${price}</span><span dir="ltr" style="unicode-bidi:isolate;">${cur}</span>` : '') +
+      `</span>`;
+    if(s.count) tags.push(mkTag('tc','⏱️', s.count, getShiftTypeLbl(s), s.payPrice.toLocaleString(), getCurrency()));
+    if(s.exHC)  tags.push(mkTag('tv','⚡',  s.exHC,  s.exHourName||(isEn?'Extra Hours':'ساعات إضافية'), s.exHP?(s.exHP).toLocaleString():'', s.exHP?getCurrency():''));
+    if(s.exCC)  tags.push(mkTag('tg','🏥',  s.exCC,  s.exCaseName||(isEn?'Regular Cases':'حالات عادية'), s.exCP?(s.exCP).toLocaleString():'', s.exCP?getCurrency():''));
+    if(s.exTC)  tags.push(mkTag('to','🔬',  s.exTC,  s.exTechName||(isEn?'Technique':'تكنيك'),           s.exTP?(s.exTP).toLocaleString():'', s.exTP?getCurrency():''));
+    if(s.exOC)  tags.push(mkTag('ty','🔷',  s.exOC,  s.exOtherName||(isEn?'Other Cases':'حالات أخرى'),  s.exOP?(s.exOP).toLocaleString():'', s.exOP?getCurrency():''));
     if(s.customExtras) s.customExtras.forEach(r=>{ if(r.count) tags.push(`<span class="tag ty">➕ ${r.count} ${r.name}</span>`); });
     if(s.note) tags.push(`<span class="tag ty">💬 ${s.note}</span>`);
     return `<div class="shift-item">
