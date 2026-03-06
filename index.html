@@ -2178,11 +2178,11 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
       const realTaxAmt = taxAmt > 0 ? taxAmt : perPlaceTaxTotal;
       const tDisc = Object.keys(byPlace).reduce((a,pid)=>a+(typeof placeDiscount!=='undefined'?placeDiscount[pid]||0:0),0);
       const totalDeduct = realTaxAmt + tDisc;
-      const rowStyle = 'display:table;width:100%;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.12);';
-      const lastRowStyle = 'display:table;width:100%;padding:8px 0;';
-      const lStyle = 'display:table-cell;font-size:13px;color:rgba(255,255,255,0.7);font-family:'+F+';text-align:right;vertical-align:middle;';
-      const rStyleW = 'display:table-cell;font-size:14px;font-weight:800;color:#fff;font-family:'+F+';text-align:left;white-space:nowrap;vertical-align:middle;';
-      const rStyleR = 'display:table-cell;font-size:14px;font-weight:800;color:#ff5252;font-family:'+F+';text-align:left;white-space:nowrap;vertical-align:middle;';
+      const rowStyle     = 'display:flex;justify-content:space-between;align-items:center;width:100%;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.12);gap:12px;';
+      const lastRowStyle = 'display:flex;justify-content:space-between;align-items:center;width:100%;padding:9px 0;gap:12px;';
+      const lStyle  = 'font-size:13px;color:rgba(255,255,255,0.7);font-family:'+F+';text-align:'+(isEn?'left':'right')+';flex:1;';
+      const rStyleW = 'font-size:14px;font-weight:800;color:#fff;font-family:'+F+';white-space:nowrap;text-align:'+(isEn?'right':'left')+';';
+      const rStyleR = 'font-size:14px;font-weight:800;color:#ff5252;font-family:'+F+';white-space:nowrap;text-align:'+(isEn?'right':'left')+';';
       let rows = '';
       // 1- إجمالي المرتب (دائماً يظهر)
       rows += '<div style="'+rowStyle+'"><span style="'+lStyle+'">📊 '+(isEn?'Gross Total':'إجمالي المرتب')+'</span><span style="'+rStyleW+'">'+grossTotal.toLocaleString()+' '+cur+'</span></div>';
