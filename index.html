@@ -2,6 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>
+(function(){
+  var lang = localStorage.getItem('sj_lang') || 'ar';
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+})();
+</script>
 <meta name="build-version" content="202603010007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -440,7 +447,7 @@
       </div>
       <!-- CTA -->
       <button onclick="finishOnboarding()" style="margin-top:24px;width:100%;max-width:300px;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:16px;padding:16px;color:#fff;font-family:Cairo,sans-serif;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 6px 25px rgba(124,58,237,0.4);">
-        ابدأ دلوقتي ⚡
+        <span id="ob-start-lbl">ابدأ دلوقتي ⚡</span>
       </button>
     </div>
 
@@ -517,12 +524,12 @@
   </div>
   <!-- iOS Instructions -->
   <div id="ios-instructions" style="display:none;background:linear-gradient(135deg,rgba(0,0,0,0.95),rgba(30,30,30,0.98));border:1px solid rgba(0,229,255,0.3);border-radius:16px;padding:18px;margin-bottom:14px;text-align:center;">
-    <div style="font-size:1rem;font-weight:800;color:var(--cyan);margin-bottom:10px;"> تثبيت على iPhone / iPad</div>
+    <div style="font-size:1rem;font-weight:800;color:var(--cyan);margin-bottom:10px;" id="lbl-ios-title"> تثبيت على iPhone / iPad</div>
     <div style="font-size:.85rem;color:var(--text);line-height:2;">
-      1️⃣ افتح التطبيق في <strong style="color:var(--cyan);">Safari</strong> (مش Chrome)<br>
+      <span id="lbl-ios-steps">1️⃣ افتح التطبيق في <strong style="color:var(--cyan);">Safari</strong> (مش Chrome)<br>
       2️⃣ اضغط <strong style="color:var(--cyan);">زرار المشاركة ⬆️</strong> في أسفل الشاشة<br>
       3️⃣ اختر <strong style="color:var(--cyan);">"إضافة إلى الشاشة الرئيسية"</strong><br>
-      4️⃣ اضغط <strong style="color:var(--cyan);">"إضافة"</strong> ✅
+      4️⃣ اضغط <strong style="color:var(--cyan);">"إضافة"</strong> ✅</span>
     </div>
     <button onclick="document.getElementById('ios-instructions').style.display='none'" style="margin-top:12px;background:rgba(0,229,255,0.15);border:1px solid var(--cyan);color:var(--cyan);padding:8px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;" id="lbl-ios-ok">حسناً ✓</button>
   </div>
@@ -668,10 +675,10 @@
   <div id="panel-shifts" class="panel">
     <div class="filter-row">
       <select id="f-place" onchange="renderShifts()"><option value="">كل الأماكن</option></select>
-      <input type="month" id="f-month" lang="ar" onchange="renderShifts()">
+      <input type="month" id="f-month" onchange="renderShifts()">
       <button class="btn btn-out" onclick="clearFilters()">✕</button>
     </div>
-    <div id="shifts-list"><div class="empty"><div class="ico">📋</div><p>لا يوجد شيفتات بعد</p></div></div>
+    <div id="shifts-list"><div class="empty"><div class="ico">📋</div><p id="lbl-no-shifts-yet">لا يوجد شيفتات بعد</p></div></div>
   </div>
 
   <!-- ══ SUMMARY ══ -->
@@ -691,7 +698,7 @@
       <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;">
         <div>
           <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-or-month">🗓️ أو اختر شهر</div>
-          <input type="month" id="s-month" lang="ar" onchange="onMonthChange()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;">
+          <input type="month" id="s-month" onchange="onMonthChange()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;">
         </div>
         <div style="padding-top:18px;">
           <button class="btn btn-out" onclick="clearSummaryFilter()" id="all-time-lbl" style="white-space:nowrap;padding:8px 12px;font-size:.78rem;">كل الوقت</button>
@@ -744,7 +751,7 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <input type="month" id="bp-month" lang="ar" onchange="onBpMonthChange()" style="flex:1;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;">
+          <input type="month" id="bp-month" onchange="onBpMonthChange()" style="flex:1;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;">
           <button class="btn btn-out" onclick="clearBpFilter()" id="lbl-bp-alltime" style="font-size:.75rem;padding:9px 12px;">كل الوقت</button>
         </div>
       </div>
@@ -794,7 +801,7 @@
 
     <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:6px;">
       <button onclick="changeLockPhone()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:7px 18px;color:var(--muted);font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;" id="lbl-change-lock">🔐 تغيير رقم القفل</button>
-      <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" id="lbl-contact-us">💬 تواصل معنا</a>
+      <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" id="lbl-contact-us" id="lbl-contact-us">💬 تواصل معنا</a>
     </div>
     <div style="margin-bottom:16px;">
       <button onclick="clearAllData()" style="width:100%;background:rgba(255,23,68,0.07);border:1px dashed rgba(255,23,68,0.3);border-radius:14px;padding:14px;color:var(--red);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" id="clear-all-btn">
@@ -921,10 +928,10 @@
     <div id="clear-modal-title" style="font-size:1rem;font-weight:900;color:var(--red);margin-bottom:6px;">مسح البيانات</div>
     <div id="clear-modal-sub" style="font-size:.8rem;color:var(--muted);margin-bottom:18px;">اختار إيه اللي عايز تمسحه</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      <button onclick="clearShiftsOnly()" style="width:100%;background:rgba(255,109,0,0.1);border:1px solid rgba(255,109,0,0.35);border-radius:12px;padding:13px;color:var(--orange);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;">
+      <button onclick="clearShiftsOnly()" style="width:100%;background:rgba(255,109,0,0.1);border:1px solid rgba(255,109,0,0.35);border-radius:12px;padding:13px;color:var(--orange);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;" id="lbl-clear-shifts-only">
         📋 مسح الشيفتات بس
       </button>
-      <button onclick="clearEverything()" style="width:100%;background:rgba(255,23,68,0.1);border:1px solid rgba(255,23,68,0.35);border-radius:12px;padding:13px;color:var(--red);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;">
+      <button onclick="clearEverything()" style="width:100%;background:rgba(255,23,68,0.1);border:1px solid rgba(255,23,68,0.35);border-radius:12px;padding:13px;color:var(--red);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;" id="lbl-clear-all">
         🗑️ مسح كل حاجة (شيفتات + أماكن)
       </button>
     </div>
@@ -980,20 +987,20 @@
   <div class="act-box">
     <div class="act-icon">⚡</div>
     <div class="act-title" style="font-family:Arial Black,Arial;letter-spacing:2px;">SHIFTATY</div>
-    <div class="act-price-badge">100 جنيه فقط</div>
-    <div class="act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج): أماكن غير محدودة</div>
+    <div class="act-price-badge" id="lbl-act-price">100 جنيه فقط</div>
+    <div class="act-sub" id="lbl-act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج): أماكن غير محدودة</div>
 
-    <a href="https://wa.me/201030391975?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:13px;border-radius:13px;font-family:Cairo,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:10px;box-shadow:0 4px 20px rgba(37,211,102,0.3);">💬 تواصل على واتساب للدفع والترقية</a>
-    <button class="act-free-btn" onclick="useFree()">🆓 استخدام النسخة المجانية</button>
+    <a href="https://wa.me/201030391975?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:13px;border-radius:13px;font-family:Cairo,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:10px;box-shadow:0 4px 20px rgba(37,211,102,0.3);" id="lbl-act-wa">💬 تواصل على واتساب للدفع والترقية</a>
+    <button class="act-free-btn" onclick="useFree()" id="lbl-act-free">🆓 استخدام النسخة المجانية</button>
 
     <div class="act-pay-box">
-      <div class="act-pay-title">💳 للترقية — ادفع 100 جنيه (مرة واحدة فقط) على:</div>
+      <div class="act-pay-title" id="lbl-act-pay-title">💳 للترقية — ادفع 100 جنيه (مرة واحدة فقط) على:</div>
       <div class="act-pay-row"><span class="act-pay-ico">📱</span><div><div class="act-pay-num">01158760466</div><div class="act-pay-label">InstaPay / اتصالات كاش</div></div></div>
       <div class="act-pay-row"><span class="act-pay-ico">📲</span><div><div class="act-pay-num">01030391975</div><div class="act-pay-label">Vodafone Cash</div></div></div>
-      <div style="font-size:.75rem;color:var(--muted);margin-top:10px;text-align:center;">بعد الدفع هتاخد كود تفعيل على واتساب</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:10px;text-align:center;" id="lbl-act-after-pay">بعد الدفع هتاخد كود تفعيل على واتساب</div>
     </div>
 
-    <input class="act-input" id="act-code-input" placeholder="أدخل كود التفعيل هنا" maxlength="20" 
+    <input class="act-input" id="act-code-input" placeholder="أدخل كود التفعيل هنا" id="act-code-input-el" maxlength="20" 
       style="margin-bottom:12px;"
       oncontextmenu="event.stopPropagation();"
       onpaste="event.stopPropagation();"
@@ -1012,20 +1019,20 @@
 <div class="admin-overlay" id="admin-overlay">
   <div class="admin-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div class="admin-title" style="margin:0;">🔐 لوحة التحكم</div>
+      <div class="admin-title" style="margin:0;" id="lbl-admin-title">🔐 لوحة التحكم</div>
       <button onclick="closeAdmin()" style="background:transparent;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
     </div>
-    <button class="btn btn-glow" style="margin-bottom:14px;" onclick="generateCode()">➕ توليد كود جديد</button>
+    <button class="btn btn-glow" style="margin-bottom:14px;" onclick="generateCode()" id="lbl-admin-gen-btn">➕ توليد كود جديد</button>
     <div id="new-code-display" style="display:none;background:var(--s3);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px;border:1px solid rgba(0,229,255,0.25);">
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px;">🎟️ الكود الجديد — ابعته للعميل على واتساب</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px;" id="lbl-admin-new-code">🎟️ الكود الجديد — ابعته للعميل على واتساب</div>
       <div id="new-code-val" style="font-size:1.8rem;font-weight:900;color:var(--cyan);letter-spacing:5px;font-family:monospace;padding:10px;background:rgba(0,229,255,0.06);border-radius:10px;margin-bottom:10px;"></div>
-      <button onclick="copyCode()" style="background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;color:#fff;padding:10px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;">📋 نسخ الكود وإرساله للعميل</button>
-      <a id="new-code-wa" href="#" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;text-decoration:none;margin-bottom:10px;">💬 إرسال الكود على واتساب مباشرة</a>
+      <button onclick="copyCode()" style="background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;color:#fff;padding:10px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;width:100%;margin-bottom:10px;" id="lbl-admin-copy-btn">📋 نسخ الكود وإرساله للعميل</button>
+      <a id="new-code-wa" href="#" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;text-decoration:none;margin-bottom:10px;" id="lbl-admin-wa-btn">💬 إرسال الكود على واتساب مباشرة</a>
       <div id="new-code-copy-hint" style="font-size:.7rem;color:var(--orange);line-height:1.6;background:rgba(255,109,0,0.08);border-radius:8px;padding:8px;"></div>
     </div>
     <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;font-weight:700;" id="lbl-admin-prev-codes">الأكواد السابقة:</div>
     <div class="admin-codes" id="admin-codes-list"></div>
-    <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:10px;">إجمالي الأكواد: <span id="codes-count" style="color:var(--cyan);font-weight:800;">0</span></div>
+    <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:10px;" id="lbl-admin-total-pre">إجمالي الأكواد: <span id="codes-count" style="color:var(--cyan);font-weight:800;">0</span></div>
   </div>
 </div>
 
@@ -2630,27 +2637,6 @@ function applyLang(){
   s('lbl-discount-row',       isEn ? '✂️ Discounts'         : '✂️ الخصومات');
   s('lbl-total-discount-row', isEn ? '📋 Total Deductions'  : '📋 إجمالي الخصومات');
 
-  // ── CURRENCY SECTION ──
-  s('lbl-currency-title', isEn ? '🌍 Currency' : '🌍 العملة');
-  // Currency options — Arabic names on left side of dash, symbol on right
-  const curOpts = {
-    'cur-egp': isEn ? '🇪🇬 Egyptian Pound — EGP'   : '🇪🇬 جنيه مصري — ج',
-    'cur-sar': isEn ? '🇸🇦 Saudi Riyal — SAR'       : '🇸🇦 ريال سعودي — ر.س',
-    'cur-aed': isEn ? '🇦🇪 UAE Dirham — AED'        : '🇦🇪 درهم إماراتي — د.إ',
-    'cur-kwd': isEn ? '🇰🇼 Kuwaiti Dinar — KWD'     : '🇰🇼 دينار كويتي — د.ك',
-    'cur-bhd': isEn ? '🇧🇭 Bahraini Dinar — BHD'    : '🇧🇭 دينار بحريني — د.ب',
-    'cur-qar': isEn ? '🇶🇦 Qatari Riyal — QAR'      : '🇶🇦 ريال قطري — ر.ق',
-    'cur-omr': isEn ? '🇴🇲 Omani Rial — OMR'        : '🇴🇲 ريال عُماني — ر.ع',
-    'cur-jod': isEn ? '🇯🇴 Jordanian Dinar — JOD'   : '🇯🇴 دينار أردني — د.أ',
-    'cur-lbp': isEn ? '🇱🇧 Lebanese Pound — LBP'    : '🇱🇧 ليرة لبنانية — ل.ل',
-    'cur-sdg': isEn ? '🇸🇩 Sudanese Pound — SDG'    : '🇸🇩 جنيه سوداني — ج.س',
-    'cur-usd': isEn ? '🇺🇸 US Dollar — $'           : '🇺🇸 دولار أمريكي — $',
-    'cur-eur': isEn ? '🇪🇺 Euro — €'                : '🇪🇺 يورو — €',
-    'cur-gbp': isEn ? '🇬🇧 British Pound — £'       : '🇬🇧 جنيه إسترليني — £',
-  };
-  Object.entries(curOpts).forEach(([id, txt]) => { const el = document.getElementById(id); if(el) el.textContent = txt; });
-  // Update currency display label after language change
-  loadCurrency();
   s('lbl-bp-net',        isEn ? '💰 Net Total'           : '💰 الصافي الكلي');
 
   // tax row label (has inner span so handle separately)
@@ -2756,8 +2742,152 @@ function applyLang(){
   // ── iOS INSTRUCTIONS ──
   s('lbl-ios-ok', isEn ? 'OK ✓' : 'حسناً ✓');
 
+  // ── DATE/MONTH INPUTS — browser calendar language ──
+  ['l-date','s-date-from','s-date-to','s-month','f-month','bp-date-from','bp-date-to','bp-month','es-date']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.lang = currentLang; });
+
+  // ── DISCOUNT ROWS ──
+  s('lbl-discount-row',       isEn ? '✂️ Discounts'        : '✂️ الخصومات');
+  s('lbl-total-discount-row', isEn ? '📋 Total Deductions' : '📋 إجمالي الخصومات');
+
+  // ── CURRENCY SECTION ──
+  s('lbl-currency-title', isEn ? '🌍 Currency' : '🌍 العملة');
+  const curOpts = {
+    'cur-egp':'🇪🇬 '+(isEn?'Egyptian Pound — EGP':'جنيه مصري — ج'),
+    'cur-sar':'🇸🇦 '+(isEn?'Saudi Riyal — SAR':'ريال سعودي — ر.س'),
+    'cur-aed':'🇦🇪 '+(isEn?'UAE Dirham — AED':'درهم إماراتي — د.إ'),
+    'cur-kwd':'🇰🇼 '+(isEn?'Kuwaiti Dinar — KWD':'دينار كويتي — د.ك'),
+    'cur-bhd':'🇧🇭 '+(isEn?'Bahraini Dinar — BHD':'دينار بحريني — د.ب'),
+    'cur-qar':'🇶🇦 '+(isEn?'Qatari Riyal — QAR':'ريال قطري — ر.ق'),
+    'cur-omr':'🇴🇲 '+(isEn?'Omani Rial — OMR':'ريال عُماني — ر.ع'),
+    'cur-jod':'🇯🇴 '+(isEn?'Jordanian Dinar — JOD':'دينار أردني — د.أ'),
+    'cur-lbp':'🇱🇧 '+(isEn?'Lebanese Pound — LBP':'ليرة لبنانية — ل.ل'),
+    'cur-sdg':'🇸🇩 '+(isEn?'Sudanese Pound — SDG':'جنيه سوداني — ج.س'),
+    'cur-usd':'🇺🇸 '+(isEn?'US Dollar — $':'دولار أمريكي — $'),
+    'cur-eur':'🇪🇺 '+(isEn?'Euro — €':'يورو — €'),
+    'cur-gbp':'🇬🇧 '+(isEn?'British Pound — £':'جنيه إسترليني — £'),
+  };
+  Object.entries(curOpts).forEach(([id,txt])=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
+  loadCurrency();
+
+  // ── STATS PANEL ──
+  s('lbl-stats-title',        isEn?'Statistics'            :'الإحصائيات');
+  s('nav-stats-lbl',          isEn?'Stats'                 :'إحصائيات');
+  s('lbl-stat-income',        isEn?'💰 Total Income'       :'💰 إجمالي الدخل الكلي');
+  s('lbl-stat-shifts',        isEn?'📋 Total Shifts'       :'📋 عدد الشيفتات الكلي');
+  s('lbl-stat-avg-income',    isEn?'📅 Avg Monthly Income' :'📅 متوسط الدخل الشهري');
+  s('lbl-stat-avg-shifts',    isEn?'📈 Avg Shifts/Month'   :'📈 متوسط الشيفتات/شهر');
+  s('lbl-stat-best-month',    isEn?'🏆 Best Salary Month'  :'🏆 أعلى شهر في المرتب');
+  s('lbl-stat-best-place',    isEn?'🏥 Top Earning Place'  :'🏥 أكثر مكان دخلاً');
+  s('lbl-stat-monthly-chart', isEn?'📊 Monthly Income'     :'📊 الدخل الشهري');
+
+  // ── BACKUP SECTION ──
+  s('lbl-backup-title',   isEn?'💾 Backup'        :'💾 النسخ الاحتياطي');
+  s('lbl-backup-desc',    isEn?'Save & restore your data anytime — upload to Google Drive or iCloud.':'احفظ بياناتك واستعدها في أي وقت — يُنصح برفع الملف على Google Drive أو iCloud لحمايته.');
+  s('lbl-export-backup',  isEn?'📤 Export Backup' :'📤 تصدير نسخة');
+  s('lbl-import-backup',  isEn?'📥 Restore Backup':'📥 استعادة نسخة');
+  s('lbl-change-lock',    isEn?'🔐 Change Lock PIN':'🔐 تغيير رقم القفل');
+  s('lbl-contact-us',     isEn?'💬 Contact Us'    :'💬 تواصل معنا');
+
+  // ── EDIT SHIFT MODAL ──
+  s('lbl-edit-shift-title',isEn?'✏️ Edit Shift'      :'✏️ تعديل الشيفت');
+  s('lbl-es-place',        isEn?'Workplace'           :'مكان العمل');
+  s('lbl-es-date',         isEn?'Date'                :'التاريخ');
+  s('lbl-es-paytype',      isEn?'Pay Type'            :'نوع الأجر');
+  s('lbl-es-price',        isEn?'Price'               :'السعر');
+  s('lbl-es-count',        isEn?'Count'               :'العدد');
+  s('lbl-es-exHC',         isEn?'Extra Hours'         :'ساعات إضافية');
+  s('lbl-es-exHP',         isEn?'Extra Hour Price'    :'سعر الساعة الإضافية');
+  s('lbl-es-exCC',         isEn?'Regular Cases'       :'حالات عادية');
+  s('lbl-es-exCP',         isEn?'Case Price'          :'سعر الحالة');
+  s('lbl-es-exTC',         isEn?'Technique Cases'     :'حالات تكنيك');
+  s('lbl-es-exTP',         isEn?'Technique Price'     :'سعر التكنيك');
+  s('lbl-es-exOC',         isEn?'Other Cases'         :'حالات أخرى');
+  s('lbl-es-exOP',         isEn?'Other Case Price'    :'سعر الحالة الأخرى');
+  s('lbl-es-note',         isEn?'Notes'               :'ملاحظات');
+  s('lbl-save-edit-shift', isEn?'✅ Save Changes'      :'✅ حفظ التعديل');
+  ['opt-hour-es','opt-shift-es','opt-case-es','opt-custom-es'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.textContent=isEn?['Per Hour','Per Shift','Per Case','Other'][i]:['بالساعة','بالشيفت','بالحالة','آخر'][i];
+  });
+
+  // ── EDIT PLACE MODAL ──
+  s('lbl-edit-place-title',isEn?'✏️ Edit Workplace':'✏️ تعديل مكان العمل');
+  s('lbl-ep-name',         isEn?'Place Name'        :'اسم المكان');
+  s('lbl-ep-paytype',      isEn?'Pay Type'          :'نوع الأجر');
+  s('lbl-ep-price',        isEn?'Price (EGP)'       :'السعر (جنيه)');
+  s('lbl-save-edit-place', isEn?'💾 Save Changes'   :'💾 حفظ التعديل');
+  s('lbl-ep-cancel',       isEn?'Cancel'            :'إلغاء');
+  ['opt-hour-ep','opt-shift-ep','opt-case-ep','opt-custom-ep'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.textContent=isEn?['Per Hour','Per Shift','Per Case','Other'][i]:['بالساعة','بالشيفت','بالحالة','آخر'][i];
+  });
+  const epPlaceHolder=document.getElementById('edit-place-name');
+  if(epPlaceHolder)epPlaceHolder.placeholder=isEn?'Place name':'اسم المكان';
+
+  // ── CLEAR / CONFIRM MODALS ──
+  s('lbl-clear-cancel',     isEn?'Cancel'                                   :'إلغاء');
+  s('lbl-confirm-cancel',   isEn?'Cancel'                                   :'إلغاء');
+  s('lbl-clear-shifts-only',isEn?'📋 Clear Shifts Only'                     :'📋 مسح الشيفتات بس');
+  s('lbl-clear-all',        isEn?'🗑️ Clear Everything (Shifts + Places)'   :'🗑️ مسح كل حاجة (شيفتات + أماكن)');
+  s('clear-modal-title',    isEn?'Clear Data'                               :'مسح البيانات');
+  s('clear-modal-sub',      isEn?'Choose what to delete'                    :'اختار إيه اللي عايز تمسحه');
+
+  // ── iOS INSTRUCTIONS ──
+  s('lbl-ios-title',isEn?' Install on iPhone / iPad':' تثبيت على iPhone / iPad');
+  s('lbl-ios-ok',   isEn?'OK ✓':'حسناً ✓');
+  const iosSteps=document.getElementById('lbl-ios-steps');
+  if(iosSteps)iosSteps.innerHTML=isEn
+    ?'1️⃣ Open the app in <strong style="color:var(--cyan);">Safari</strong> (not Chrome)<br>2️⃣ Tap the <strong style="color:var(--cyan);">Share button ⬆️</strong> at the bottom<br>3️⃣ Select <strong style="color:var(--cyan);">"Add to Home Screen"</strong><br>4️⃣ Tap <strong style="color:var(--cyan);">"Add"</strong> ✅'
+    :'1️⃣ افتح التطبيق في <strong style="color:var(--cyan);">Safari</strong> (مش Chrome)<br>2️⃣ اضغط <strong style="color:var(--cyan);">زرار المشاركة ⬆️</strong> في أسفل الشاشة<br>3️⃣ اختر <strong style="color:var(--cyan);">"إضافة إلى الشاشة الرئيسية"</strong><br>4️⃣ اضغط <strong style="color:var(--cyan);">"إضافة"</strong> ✅';
+
+  // ── ACTIVATION OVERLAY ──
+  s('lbl-act-price',    isEn?'100 EGP only'                                           :'100 جنيه فقط');
+  const actSub=document.getElementById('lbl-act-sub');
+  if(actSub)actSub.innerHTML=isEn?'✅ Free: 1 place + shifts + full summary<br>⭐ Paid (100 EGP): Unlimited places':'✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج): أماكن غير محدودة';
+  s('lbl-act-wa',       isEn?'💬 Contact on WhatsApp to upgrade'                     :'💬 تواصل على واتساب للدفع والترقية');
+  s('lbl-act-free',     isEn?'🆓 Use Free Version'                                   :'🆓 استخدام النسخة المجانية');
+  s('lbl-act-pay-title',isEn?'💳 To upgrade — pay 100 EGP (one time) to:'            :'💳 للترقية — ادفع 100 جنيه (مرة واحدة فقط) على:');
+  s('lbl-act-after-pay',isEn?'After payment you will receive an activation code on WhatsApp':'بعد الدفع هتاخد كود تفعيل على واتساب');
+  s('lbl-act-activate', isEn?'🔓 Activate Full Version'                              :'🔓 تفعيل النسخة الكاملة');
+  const actInput=document.getElementById('act-code-input');
+  if(actInput)actInput.placeholder=isEn?'Enter activation code here':'أدخل كود التفعيل هنا';
+
   // ── ADMIN PANEL ──
-  s('lbl-admin-prev-codes', isEn ? 'Previous Codes:' : 'الأكواد السابقة:');
+  s('lbl-admin-title',    isEn?'🔐 Admin Panel'               :'🔐 لوحة التحكم');
+  s('lbl-admin-gen-btn',  isEn?'➕ Generate Code'             :'➕ توليد كود جديد');
+  s('lbl-admin-new-code', isEn?'🎟️ New Code — send to customer on WhatsApp':'🎟️ الكود الجديد — ابعته للعميل على واتساب');
+  s('lbl-admin-copy-btn', isEn?'📋 Copy & Send to Customer'   :'📋 نسخ الكود وإرساله للعميل');
+  s('lbl-admin-wa-btn',   isEn?'💬 Send Code via WhatsApp'    :'💬 إرسال الكود على واتساب مباشرة');
+  s('lbl-admin-prev-codes',isEn?'Previous Codes:'             :'الأكواد السابقة:');
+  const totalPre=document.getElementById('lbl-admin-total-pre');
+  if(totalPre){
+    const cnt=document.getElementById('codes-count')?.textContent||'0';
+    totalPre.innerHTML=(isEn?'Total Codes: ':'إجمالي الأكواد: ')+'<span id="codes-count" style="color:var(--cyan);font-weight:800;">'+cnt+'</span>';
+  }
+
+  // ── NO SHIFTS YET ──
+  s('lbl-no-shifts-yet',isEn?'No shifts recorded yet':'لا يوجد شيفتات بعد');
+
+  // ── RATING REMINDER BANNER ──
+  const rTitle=document.getElementById('rating-banner-title');
+  const rMsg=document.getElementById('rating-banner-msg');
+  const rBtn=document.getElementById('rating-banner-btn');
+  const rDis=document.getElementById('rating-dismiss-btn');
+  if(rTitle)rTitle.textContent=isEn?'Enjoying the app?'                         :'عجبك التطبيق؟';
+  if(rMsg)  rMsg.textContent  =isEn?'Share your feedback and help us improve 🙏':'شاركنا رأيك وساعدنا نتطور أكتر 🙏';
+  if(rBtn)  rBtn.textContent  =isEn?'⭐ Rate Now'                                :'⭐ قيّم دلوقتي';
+  if(rDis)  rDis.textContent  =isEn?'Later'                                      :'لاحقاً';
+
+  // ── BACKUP REMINDER BANNER ──
+  const bTitle=document.getElementById('backup-reminder-title');
+  const bMsg=document.getElementById('backup-reminder-msg');
+  const bBtn=document.getElementById('backup-reminder-btn');
+  const bDis=document.getElementById('backup-dismiss-btn');
+  if(bTitle)bTitle.textContent=isEn?'Reminder: Backup'                         :'تذكير: نسخ احتياطي';
+  if(bMsg)  bMsg.textContent  =isEn?'Last backup was more than 7 days ago'     :'آخر نسخة احتياطية منذ أكثر من 7 أيام';
+  if(bBtn)  bBtn.textContent  =isEn?'📤 Save Now'                              :'📤 احفظ دلوقتي';
+  if(bDis)  bDis.textContent  =isEn?'Later'                                    :'لاحقاً';
 }
 
 // ── HELPERS ──
