@@ -523,7 +523,7 @@
       3️⃣ اختر <strong style="color:var(--cyan);">"إضافة إلى الشاشة الرئيسية"</strong><br>
       4️⃣ اضغط <strong style="color:var(--cyan);">"إضافة"</strong> ✅
     </div>
-    <button onclick="document.getElementById('ios-instructions').style.display='none'" style="margin-top:12px;background:rgba(0,229,255,0.15);border:1px solid var(--cyan);color:var(--cyan);padding:8px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;">حسناً ✓</button>
+    <button onclick="document.getElementById('ios-instructions').style.display='none'" style="margin-top:12px;background:rgba(0,229,255,0.15);border:1px solid var(--cyan);color:var(--cyan);padding:8px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-weight:700;cursor:pointer;" id="lbl-ios-ok">حسناً ✓</button>
   </div>
   <!-- Legacy banners (hidden) -->
 
@@ -762,38 +762,38 @@
     
     <!-- ── العملة ── -->
     <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:16px;padding:16px;margin-bottom:12px;">
-      <div style="font-size:.72rem;color:var(--cyan);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;">🌍 العملة</div>
+      <div style="font-size:.72rem;color:var(--cyan);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;" id="lbl-currency-title">🌍 العملة</div>
       <select id="currency-select" onchange="saveCurrency()" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:Cairo,sans-serif;font-size:.9rem;outline:none;-webkit-appearance:none;">
-        <option value="ج|جنيه مصري">🇪🇬 جنيه مصري — ج</option>
-        <option value="ر.س|ريال سعودي">🇸🇦 ريال سعودي — ر.س</option>
-        <option value="د.إ|درهم إماراتي">🇦🇪 درهم إماراتي — د.إ</option>
-        <option value="د.ك|دينار كويتي">🇰🇼 دينار كويتي — د.ك</option>
-        <option value="د.ب|دينار بحريني">🇧🇭 دينار بحريني — د.ب</option>
-        <option value="ر.ق|ريال قطري">🇶🇦 ريال قطري — ر.ق</option>
-        <option value="ر.ع|ريال عُماني">🇴🇲 ريال عُماني — ر.ع</option>
-        <option value="د.أ|دينار أردني">🇯🇴 دينار أردني — د.أ</option>
-        <option value="ل.ل|ليرة لبنانية">🇱🇧 ليرة لبنانية — ل.ل</option>
-        <option value="ج.س|جنيه سوداني">🇸🇩 جنيه سوداني — ج.س</option>
-        <option value="$|دولار أمريكي">🇺🇸 دولار أمريكي — $</option>
-        <option value="€|يورو">🇪🇺 يورو — €</option>
-        <option value="£|جنيه إسترليني">🇬🇧 جنيه إسترليني — £</option>
+        <option value="ج|جنيه مصري"  id="cur-egp">🇪🇬 جنيه مصري — ج</option>
+        <option value="ر.س|ريال سعودي" id="cur-sar">🇸🇦 ريال سعودي — ر.س</option>
+        <option value="د.إ|درهم إماراتي" id="cur-aed">🇦🇪 درهم إماراتي — د.إ</option>
+        <option value="د.ك|دينار كويتي" id="cur-kwd">🇰🇼 دينار كويتي — د.ك</option>
+        <option value="د.ب|دينار بحريني" id="cur-bhd">🇧🇭 دينار بحريني — د.ب</option>
+        <option value="ر.ق|ريال قطري" id="cur-qar">🇶🇦 ريال قطري — ر.ق</option>
+        <option value="ر.ع|ريال عُماني" id="cur-omr">🇴🇲 ريال عُماني — ر.ع</option>
+        <option value="د.أ|دينار أردني" id="cur-jod">🇯🇴 دينار أردني — د.أ</option>
+        <option value="ل.ل|ليرة لبنانية" id="cur-lbp">🇱🇧 ليرة لبنانية — ل.ل</option>
+        <option value="ج.س|جنيه سوداني" id="cur-sdg">🇸🇩 جنيه سوداني — ج.س</option>
+        <option value="$|دولار أمريكي" id="cur-usd">🇺🇸 دولار أمريكي — $</option>
+        <option value="€|يورو" id="cur-eur">🇪🇺 يورو — €</option>
+        <option value="£|جنيه إسترليني" id="cur-gbp">🇬🇧 جنيه إسترليني — £</option>
       </select>
     </div>
 
     <!-- ── نسخ احتياطي ── -->
     <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:16px;padding:16px;margin-bottom:12px;">
-      <div style="font-size:.72rem;color:var(--cyan);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;">💾 النسخ الاحتياطي</div>
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">احفظ بياناتك واستعدها في أي وقت — يُنصح برفع الملف على Google Drive أو iCloud لحمايته.</div>
+      <div style="font-size:.72rem;color:var(--cyan);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;" id="lbl-backup-title">💾 النسخ الاحتياطي</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6;" id="lbl-backup-desc">احفظ بياناتك واستعدها في أي وقت — يُنصح برفع الملف على Google Drive أو iCloud لحمايته.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button onclick="exportBackup()" style="background:linear-gradient(135deg,#00897b,#00e676);border:none;border-radius:12px;padding:12px 8px;color:#000;font-family:Cairo,sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">📤 تصدير نسخة</button>
-        <button onclick="document.getElementById('import-file-input').click()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);border-radius:12px;padding:12px 8px;color:#a78bfa;font-family:Cairo,sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">📥 استعادة نسخة</button>
+        <button onclick="exportBackup()" style="background:linear-gradient(135deg,#00897b,#00e676);border:none;border-radius:12px;padding:12px 8px;color:#000;font-family:Cairo,sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" id="lbl-export-backup">📤 تصدير نسخة</button>
+        <button onclick="document.getElementById('import-file-input').click()" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);border-radius:12px;padding:12px 8px;color:#a78bfa;font-family:Cairo,sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" id="lbl-import-backup">📥 استعادة نسخة</button>
       </div>
       <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="importBackup(event)">
     </div>
 
     <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:6px;">
-      <button onclick="changeLockPhone()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:7px 18px;color:var(--muted);font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;">🔐 تغيير رقم القفل</button>
-      <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">💬 تواصل معنا</a>
+      <button onclick="changeLockPhone()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:7px 18px;color:var(--muted);font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;" id="lbl-change-lock">🔐 تغيير رقم القفل</button>
+      <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" id="lbl-contact-us">💬 تواصل معنا</a>
     </div>
     <div style="margin-bottom:16px;">
       <button onclick="clearAllData()" style="width:100%;background:rgba(255,23,68,0.07);border:1px dashed rgba(255,23,68,0.3);border-radius:14px;padding:14px;color:var(--red);font-family:Cairo,sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" id="clear-all-btn">
@@ -806,31 +806,31 @@
   <div id="panel-stats" class="panel">
     <div class="card">
       <div class="ch">
-        <div class="ct">📊 <span>الإحصائيات</span></div>
+        <div class="ct">📊 <span id="lbl-stats-title">الإحصائيات</span></div>
       </div>
       <!-- بطاقات رئيسية -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,229,255,0.04));border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;">💰 إجمالي الدخل الكلي</div>
+          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-income">💰 إجمالي الدخل الكلي</div>
           <div id="stat-total-income" style="font-size:1.35rem;font-weight:900;color:var(--cyan);">0 ج</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(0,230,118,0.12),rgba(0,230,118,0.04));border:1px solid rgba(0,230,118,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;">📋 عدد الشيفتات الكلي</div>
+          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-shifts">📋 عدد الشيفتات الكلي</div>
           <div id="stat-total-shifts" style="font-size:1.35rem;font-weight:900;color:var(--green);">0</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.04));border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;">📅 متوسط الدخل الشهري</div>
+          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-avg-income">📅 متوسط الدخل الشهري</div>
           <div id="stat-avg-monthly" style="font-size:1.35rem;font-weight:900;color:#a78bfa;">0 ج</div>
         </div>
         <div style="background:linear-gradient(135deg,rgba(255,109,0,0.12),rgba(255,109,0,0.04));border:1px solid rgba(255,109,0,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;">📈 متوسط الشيفتات/شهر</div>
+          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-avg-shifts">📈 متوسط الشيفتات/شهر</div>
           <div id="stat-avg-shifts" style="font-size:1.35rem;font-weight:900;color:var(--orange);">0</div>
         </div>
       </div>
 
       <!-- أعلى شهر -->
       <div style="background:linear-gradient(135deg,rgba(255,214,0,0.1),rgba(255,109,0,0.07));border:1px solid rgba(255,214,0,0.2);border-radius:16px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:.72rem;color:var(--yellow);font-weight:800;margin-bottom:10px;">🏆 أعلى شهر في المرتب</div>
+        <div style="font-size:.72rem;color:var(--yellow);font-weight:800;margin-bottom:10px;" id="lbl-stat-best-month">🏆 أعلى شهر في المرتب</div>
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div id="stat-best-month-name" style="font-size:.95rem;font-weight:800;color:var(--text);">—</div>
           <div id="stat-best-month-val" style="font-size:1.1rem;font-weight:900;color:var(--yellow);">0 ج</div>
@@ -842,7 +842,7 @@
 
       <!-- أكثر مكان دخلاً -->
       <div style="background:linear-gradient(135deg,rgba(0,230,118,0.08),rgba(0,229,255,0.05));border:1px solid rgba(0,230,118,0.15);border-radius:16px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:.72rem;color:var(--green);font-weight:800;margin-bottom:10px;">🏥 أكثر مكان دخلاً</div>
+        <div style="font-size:.72rem;color:var(--green);font-weight:800;margin-bottom:10px;" id="lbl-stat-best-place">🏥 أكثر مكان دخلاً</div>
         <div id="stat-best-place-list" style="display:flex;flex-direction:column;gap:8px;">
           <div style="color:var(--muted);font-size:.82rem;">لا يوجد بيانات بعد</div>
         </div>
@@ -850,7 +850,7 @@
 
       <!-- مخطط الدخل الشهري -->
       <div style="background:var(--s2);border:1px solid var(--border);border-radius:16px;padding:16px;">
-        <div style="font-size:.72rem;color:var(--cyan);font-weight:800;margin-bottom:14px;">📊 الدخل الشهري</div>
+        <div style="font-size:.72rem;color:var(--cyan);font-weight:800;margin-bottom:14px;" id="lbl-stat-monthly-chart">📊 الدخل الشهري</div>
         <div id="stat-monthly-chart" style="display:flex;align-items:flex-end;gap:6px;height:90px;"></div>
         <div id="stat-monthly-labels" style="display:flex;gap:6px;margin-top:6px;"></div>
       </div>
@@ -864,49 +864,49 @@
   <div style="background:var(--s1);border-radius:24px 24px 0 0;padding:20px 18px 30px;width:100%;max-width:500px;margin:0 auto;border-top:1px solid rgba(0,229,255,0.2);max-height:90vh;display:flex;flex-direction:column;">
     <!-- Header ثابت -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-shrink:0;">
-      <div style="font-size:1rem;font-weight:800;color:var(--cyan);">✏️ تعديل الشيفت</div>
+      <div style="font-size:1rem;font-weight:800;color:var(--cyan);" id="lbl-edit-shift-title">✏️ تعديل الشيفت</div>
       <button onclick="document.getElementById('edit-shift-modal').classList.remove('show')" style="background:rgba(255,255,255,0.08);border:none;color:var(--muted);width:32px;height:32px;border-radius:50%;font-size:1.1rem;cursor:pointer;">✕</button>
     </div>
     <input type="hidden" id="es-id">
     <!-- محتوى قابل للتمرير -->
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:8px;">
       <div class="grid g2" style="margin-bottom:8px;">
-        <div class="field"><label>مكان العمل</label><select id="es-place"></select></div>
-        <div class="field"><label>التاريخ</label><input type="date" id="es-date"></div>
+        <div class="field"><label id="lbl-es-place">مكان العمل</label><select id="es-place"></select></div>
+        <div class="field"><label id="lbl-es-date">التاريخ</label><input type="date" id="es-date"></div>
       </div>
       <div class="grid g2" style="margin-bottom:8px;">
-        <div class="field"><label>نوع الأجر</label>
+        <div class="field"><label id="lbl-es-paytype">نوع الأجر</label>
           <select id="es-pay-type">
-            <option value="hour">بالساعة</option>
-            <option value="shift">بالشيفت</option>
-            <option value="case">بالحالة</option>
-            <option value="custom">آخر</option>
+            <option value="hour" id="opt-hour-es">بالساعة</option>
+            <option value="shift" id="opt-shift-es">بالشيفت</option>
+            <option value="case" id="opt-case-es">بالحالة</option>
+            <option value="custom" id="opt-custom-es">آخر</option>
           </select>
         </div>
-        <div class="field"><label>السعر</label><input type="number" id="es-pay-price" min="0"></div>
+        <div class="field"><label id="lbl-es-price">السعر</label><input type="number" id="es-pay-price" min="0"></div>
       </div>
-      <div class="field" style="margin-bottom:8px;"><label>العدد</label><input type="number" id="es-count" min="0"></div>
+      <div class="field" style="margin-bottom:8px;"><label id="lbl-es-count">العدد</label><input type="number" id="es-count" min="0"></div>
       <div class="grid g2" style="margin-bottom:6px;">
-        <div class="field"><label>ساعات إضافية</label><input type="number" id="es-exHC" min="0"></div>
-        <div class="field"><label>سعر الساعة الإضافية</label><input type="number" id="es-exHP" min="0"></div>
-      </div>
-      <div class="grid g2" style="margin-bottom:6px;">
-        <div class="field"><label>حالات عادية</label><input type="number" id="es-exCC" min="0"></div>
-        <div class="field"><label>سعر الحالة</label><input type="number" id="es-exCP" min="0"></div>
+        <div class="field"><label id="lbl-es-exHC">ساعات إضافية</label><input type="number" id="es-exHC" min="0"></div>
+        <div class="field"><label id="lbl-es-exHP">سعر الساعة الإضافية</label><input type="number" id="es-exHP" min="0"></div>
       </div>
       <div class="grid g2" style="margin-bottom:6px;">
-        <div class="field"><label>حالات تكنيك</label><input type="number" id="es-exTC" min="0"></div>
-        <div class="field"><label>سعر التكنيك</label><input type="number" id="es-exTP" min="0"></div>
+        <div class="field"><label id="lbl-es-exCC">حالات عادية</label><input type="number" id="es-exCC" min="0"></div>
+        <div class="field"><label id="lbl-es-exCP">سعر الحالة</label><input type="number" id="es-exCP" min="0"></div>
       </div>
       <div class="grid g2" style="margin-bottom:6px;">
-        <div class="field"><label>حالات أخرى</label><input type="number" id="es-exOC" min="0"></div>
-        <div class="field"><label>سعر الحالة الأخرى</label><input type="number" id="es-exOP" min="0"></div>
+        <div class="field"><label id="lbl-es-exTC">حالات تكنيك</label><input type="number" id="es-exTC" min="0"></div>
+        <div class="field"><label id="lbl-es-exTP">سعر التكنيك</label><input type="number" id="es-exTP" min="0"></div>
       </div>
-      <div class="field" style="margin-bottom:6px;"><label>ملاحظات</label><input type="text" id="es-note"></div>
+      <div class="grid g2" style="margin-bottom:6px;">
+        <div class="field"><label id="lbl-es-exOC">حالات أخرى</label><input type="number" id="es-exOC" min="0"></div>
+        <div class="field"><label id="lbl-es-exOP">سعر الحالة الأخرى</label><input type="number" id="es-exOP" min="0"></div>
+      </div>
+      <div class="field" style="margin-bottom:6px;"><label id="lbl-es-note">ملاحظات</label><input type="text" id="es-note"></div>
     </div>
     <!-- زرار الحفظ ثابت في الأسفل -->
     <div style="flex-shrink:0;padding-top:12px;border-top:1px solid var(--border);">
-      <button class="btn btn-green" onclick="saveEditShift()" style="width:100%;padding:16px;font-size:1rem;font-weight:900;letter-spacing:1px;border-radius:14px;">
+      <button class="btn btn-green" onclick="saveEditShift()" style="width:100%;padding:16px;font-size:1rem;font-weight:900;letter-spacing:1px;border-radius:14px;" id="lbl-save-edit-shift">
         ✅ حفظ التعديل
       </button>
     </div>
@@ -927,7 +927,7 @@
         🗑️ مسح كل حاجة (شيفتات + أماكن)
       </button>
     </div>
-    <button onclick="document.getElementById('clear-modal').classList.remove('show')" class="btn btn-out" style="width:100%;padding:11px;">إلغاء</button>
+    <button onclick="document.getElementById('clear-modal').classList.remove('show')" class="btn btn-out" style="width:100%;padding:11px;" id="lbl-clear-cancel">إلغاء</button>
   </div>
 </div>
 
@@ -938,7 +938,7 @@
     <div id="confirm-msg" style="font-size:.95rem;font-weight:700;margin-bottom:20px;color:var(--text);"></div>
     <div style="display:flex;gap:10px;">
       <button id="confirm-yes" class="btn btn-red" style="flex:1;padding:12px;">تأكيد</button>
-      <button onclick="closeConfirm()" class="btn btn-out" style="flex:1;padding:12px;">إلغاء</button>
+      <button onclick="closeConfirm()" class="btn btn-out" style="flex:1;padding:12px;" id="lbl-confirm-cancel">إلغاء</button>
     </div>
   </div>
 </div>
@@ -946,30 +946,30 @@
 <!-- EDIT PLACE MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-box">
-    <div class="modal-title">✏️ تعديل مكان العمل</div>
+    <div class="modal-title" id="lbl-edit-place-title">✏️ تعديل مكان العمل</div>
     <input type="hidden" id="edit-place-id">
     <div class="grid" style="margin-bottom:14px;">
-      <div class="field"><label>اسم المكان</label><input type="text" id="edit-place-name" placeholder="اسم المكان"></div>
+      <div class="field"><label id="lbl-ep-name">اسم المكان</label><input type="text" id="edit-place-name" placeholder="اسم المكان"></div>
       <div class="grid g2">
         <div class="field">
-          <label>نوع الأجر</label>
+          <label id="lbl-ep-paytype">نوع الأجر</label>
           <select id="edit-place-type" onchange="onEditPlaceTypeChange()">
-            <option value="hour">بالساعة</option>
-            <option value="shift">بالشيفت</option>
-            <option value="case">بالحالة</option>
-            <option value="custom">آخر</option>
+            <option value="hour" id="opt-hour-ep">بالساعة</option>
+            <option value="shift" id="opt-shift-ep">بالشيفت</option>
+            <option value="case" id="opt-case-ep">بالحالة</option>
+            <option value="custom" id="opt-custom-ep">آخر</option>
           </select>
         </div>
         <div class="field" id="edit-custom-name-field" style="display:none;">
           <label id="lbl-custom-name-edit">اسم النظام</label>
           <input type="text" id="edit-custom-name" placeholder="مثال: بالزيارة">
         </div>
-        <div class="field"><label>السعر (جنيه)</label><input type="number" id="edit-place-price" placeholder="0" min="0"></div>
+        <div class="field"><label id="lbl-ep-price">السعر (جنيه)</label><input type="number" id="edit-place-price" placeholder="0" min="0"></div>
       </div>
     </div>
     <div style="display:flex;gap:10px;">
-      <button class="btn btn-green" style="flex:2;" onclick="saveEditPlace()">💾 حفظ التعديل</button>
-      <button class="btn btn-out" style="flex:1;" onclick="closeEditModal()">إلغاء</button>
+      <button class="btn btn-green" style="flex:2;" onclick="saveEditPlace()" id="lbl-save-edit-place">💾 حفظ التعديل</button>
+      <button class="btn btn-out" style="flex:1;" onclick="closeEditModal()" id="lbl-ep-cancel">إلغاء</button>
     </div>
   </div>
 </div>
@@ -1022,7 +1022,7 @@
       <a id="new-code-wa" href="#" target="_blank" style="display:block;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-family:Cairo,sans-serif;font-size:.85rem;font-weight:800;cursor:pointer;text-decoration:none;margin-bottom:10px;">💬 إرسال الكود على واتساب مباشرة</a>
       <div id="new-code-copy-hint" style="font-size:.7rem;color:var(--orange);line-height:1.6;background:rgba(255,109,0,0.08);border-radius:8px;padding:8px;"></div>
     </div>
-    <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;font-weight:700;">الأكواد السابقة:</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;font-weight:700;" id="lbl-admin-prev-codes">الأكواد السابقة:</div>
     <div class="admin-codes" id="admin-codes-list"></div>
     <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:10px;">إجمالي الأكواد: <span id="codes-count" style="color:var(--cyan);font-weight:800;">0</span></div>
   </div>
@@ -1034,7 +1034,7 @@
   <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('log');return false;"><span class="ico">➕</span><span id="nav-shift-lbl">شيفت</span></button>
   <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('shifts');return false;"><span class="ico">📋</span><span id="nav-log-lbl">السجل</span></button>
   <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('summary');return false;"><span class="ico">💰</span><span id="nav-summary-lbl">الملخص</span></button>
-  <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('stats');return false;"><span class="ico">📊</span><span>إحصائيات</span></button>
+  <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('stats');return false;"><span class="ico">📊</span><span id="nav-stats-lbl">إحصائيات</span></button>
 </nav>
 
 <script>
@@ -2617,6 +2617,32 @@ function applyLang(){
   s('lbl-bp-alltime',    isEn ? 'All Time'               : 'كل الوقت');
   s('lbl-bp-gross',      isEn ? '📊 Grand Total'         : '📊 الإجمالي الكلي');
   s('lbl-bp-tax',        isEn ? '✂️ Total Discounts'       : '✂️ مجموع الخصومات');
+
+  // ── DISCOUNT ROWS IN SUMMARY ──
+  s('lbl-discount-row',       isEn ? '✂️ Discounts'         : '✂️ الخصومات');
+  s('lbl-total-discount-row', isEn ? '📋 Total Deductions'  : '📋 إجمالي الخصومات');
+
+  // ── CURRENCY SECTION ──
+  s('lbl-currency-title', isEn ? '🌍 Currency' : '🌍 العملة');
+  // Currency options — Arabic names on left side of dash, symbol on right
+  const curOpts = {
+    'cur-egp': isEn ? '🇪🇬 Egyptian Pound — EGP'   : '🇪🇬 جنيه مصري — ج',
+    'cur-sar': isEn ? '🇸🇦 Saudi Riyal — SAR'       : '🇸🇦 ريال سعودي — ر.س',
+    'cur-aed': isEn ? '🇦🇪 UAE Dirham — AED'        : '🇦🇪 درهم إماراتي — د.إ',
+    'cur-kwd': isEn ? '🇰🇼 Kuwaiti Dinar — KWD'     : '🇰🇼 دينار كويتي — د.ك',
+    'cur-bhd': isEn ? '🇧🇭 Bahraini Dinar — BHD'    : '🇧🇭 دينار بحريني — د.ب',
+    'cur-qar': isEn ? '🇶🇦 Qatari Riyal — QAR'      : '🇶🇦 ريال قطري — ر.ق',
+    'cur-omr': isEn ? '🇴🇲 Omani Rial — OMR'        : '🇴🇲 ريال عُماني — ر.ع',
+    'cur-jod': isEn ? '🇯🇴 Jordanian Dinar — JOD'   : '🇯🇴 دينار أردني — د.أ',
+    'cur-lbp': isEn ? '🇱🇧 Lebanese Pound — LBP'    : '🇱🇧 ليرة لبنانية — ل.ل',
+    'cur-sdg': isEn ? '🇸🇩 Sudanese Pound — SDG'    : '🇸🇩 جنيه سوداني — ج.س',
+    'cur-usd': isEn ? '🇺🇸 US Dollar — $'           : '🇺🇸 دولار أمريكي — $',
+    'cur-eur': isEn ? '🇪🇺 Euro — €'                : '🇪🇺 يورو — €',
+    'cur-gbp': isEn ? '🇬🇧 British Pound — £'       : '🇬🇧 جنيه إسترليني — £',
+  };
+  Object.entries(curOpts).forEach(([id, txt]) => { const el = document.getElementById(id); if(el) el.textContent = txt; });
+  // Update currency display label after language change
+  loadCurrency();
   s('lbl-bp-net',        isEn ? '💰 Net Total'           : '💰 الصافي الكلي');
 
   // tax row label (has inner span so handle separately)
@@ -2660,6 +2686,70 @@ function applyLang(){
   renderShifts();
   renderPlaces();
   renderByPlace();
+
+  // ── STATS PANEL ──
+  s('lbl-stats-title',       isEn ? 'Statistics'                    : 'الإحصائيات');
+  s('nav-stats-lbl',         isEn ? 'Stats'                         : 'إحصائيات');
+  s('lbl-stat-income',       isEn ? '💰 Total Income'               : '💰 إجمالي الدخل الكلي');
+  s('lbl-stat-shifts',       isEn ? '📋 Total Shifts'               : '📋 عدد الشيفتات الكلي');
+  s('lbl-stat-avg-income',   isEn ? '📅 Avg Monthly Income'         : '📅 متوسط الدخل الشهري');
+  s('lbl-stat-avg-shifts',   isEn ? '📈 Avg Shifts/Month'           : '📈 متوسط الشيفتات/شهر');
+  s('lbl-stat-best-month',   isEn ? '🏆 Best Salary Month'          : '🏆 أعلى شهر في المرتب');
+  s('lbl-stat-best-place',   isEn ? '🏥 Highest Earning Place'      : '🏥 أكثر مكان دخلاً');
+  s('lbl-stat-monthly-chart',isEn ? '📊 Monthly Income'             : '📊 الدخل الشهري');
+
+  // ── BACKUP SECTION ──
+  s('lbl-backup-title',   isEn ? '💾 Backup'                                                              : '💾 النسخ الاحتياطي');
+  s('lbl-backup-desc',    isEn ? 'Save & restore your data anytime — upload to Google Drive or iCloud.'   : 'احفظ بياناتك واستعدها في أي وقت — يُنصح برفع الملف على Google Drive أو iCloud لحمايته.');
+  s('lbl-export-backup',  isEn ? '📤 Export Backup'   : '📤 تصدير نسخة');
+  s('lbl-import-backup',  isEn ? '📥 Restore Backup'  : '📥 استعادة نسخة');
+  s('lbl-change-lock',    isEn ? '🔐 Change Lock PIN'  : '🔐 تغيير رقم القفل');
+  s('lbl-contact-us',     isEn ? '💬 Contact Us'       : '💬 تواصل معنا');
+
+  // ── EDIT SHIFT MODAL ──
+  s('lbl-edit-shift-title', isEn ? '✏️ Edit Shift'          : '✏️ تعديل الشيفت');
+  s('lbl-es-place',         isEn ? 'Workplace'               : 'مكان العمل');
+  s('lbl-es-date',          isEn ? 'Date'                    : 'التاريخ');
+  s('lbl-es-paytype',       isEn ? 'Pay Type'                : 'نوع الأجر');
+  s('lbl-es-price',         isEn ? 'Price'                   : 'السعر');
+  s('lbl-es-count',         isEn ? 'Count'                   : 'العدد');
+  s('lbl-es-exHC',          isEn ? 'Extra Hours'             : 'ساعات إضافية');
+  s('lbl-es-exHP',          isEn ? 'Extra Hour Price'        : 'سعر الساعة الإضافية');
+  s('lbl-es-exCC',          isEn ? 'Regular Cases'           : 'حالات عادية');
+  s('lbl-es-exCP',          isEn ? 'Case Price'              : 'سعر الحالة');
+  s('lbl-es-exTC',          isEn ? 'Technique Cases'         : 'حالات تكنيك');
+  s('lbl-es-exTP',          isEn ? 'Technique Price'         : 'سعر التكنيك');
+  s('lbl-es-exOC',          isEn ? 'Other Cases'             : 'حالات أخرى');
+  s('lbl-es-exOP',          isEn ? 'Other Case Price'        : 'سعر الحالة الأخرى');
+  s('lbl-es-note',          isEn ? 'Notes'                   : 'ملاحظات');
+  s('lbl-save-edit-shift',  isEn ? '✅ Save Changes'          : '✅ حفظ التعديل');
+  const optEsH = document.getElementById('opt-hour-es');   if(optEsH)  optEsH.textContent  = isEn ? 'Per Hour'  : 'بالساعة';
+  const optEsS = document.getElementById('opt-shift-es');  if(optEsS)  optEsS.textContent  = isEn ? 'Per Shift' : 'بالشيفت';
+  const optEsC = document.getElementById('opt-case-es');   if(optEsC)  optEsC.textContent  = isEn ? 'Per Case'  : 'بالحالة';
+  const optEsX = document.getElementById('opt-custom-es'); if(optEsX)  optEsX.textContent  = isEn ? 'Other'     : 'آخر';
+
+  // ── EDIT PLACE MODAL ──
+  s('lbl-edit-place-title', isEn ? '✏️ Edit Workplace'  : '✏️ تعديل مكان العمل');
+  s('lbl-ep-name',          isEn ? 'Place Name'          : 'اسم المكان');
+  s('lbl-ep-paytype',       isEn ? 'Pay Type'            : 'نوع الأجر');
+  s('lbl-ep-price',         isEn ? 'Price (EGP)'         : 'السعر (جنيه)');
+  s('lbl-save-edit-place',  isEn ? '💾 Save Changes'     : '💾 حفظ التعديل');
+  s('lbl-ep-cancel',        isEn ? 'Cancel'              : 'إلغاء');
+  const optEpH = document.getElementById('opt-hour-ep');   if(optEpH)  optEpH.textContent  = isEn ? 'Per Hour'  : 'بالساعة';
+  const optEpS = document.getElementById('opt-shift-ep');  if(optEpS)  optEpS.textContent  = isEn ? 'Per Shift' : 'بالشيفت';
+  const optEpC = document.getElementById('opt-case-ep');   if(optEpC)  optEpC.textContent  = isEn ? 'Per Case'  : 'بالحالة';
+  const optEpX = document.getElementById('opt-custom-ep'); if(optEpX)  optEpX.textContent  = isEn ? 'Other'     : 'آخر';
+  const epNamePh = document.getElementById('edit-place-name'); if(epNamePh) epNamePh.placeholder = isEn ? 'Place Name' : 'اسم المكان';
+
+  // ── CLEAR / CONFIRM MODALS ──
+  s('lbl-clear-cancel',   isEn ? 'Cancel' : 'إلغاء');
+  s('lbl-confirm-cancel', isEn ? 'Cancel' : 'إلغاء');
+
+  // ── iOS INSTRUCTIONS ──
+  s('lbl-ios-ok', isEn ? 'OK ✓' : 'حسناً ✓');
+
+  // ── ADMIN PANEL ──
+  s('lbl-admin-prev-codes', isEn ? 'Previous Codes:' : 'الأكواد السابقة:');
 }
 
 // ── HELPERS ──
@@ -3346,15 +3436,21 @@ function getCurrencyFull(){
 function saveCurrency(){
   const val = document.getElementById('currency-select')?.value || 'ج|جنيه مصري';
   localStorage.setItem('sj_currency', val);
-  // تحديث اسم العملة في الملخص
   const parts = val.split('|');
-  const fullName = parts[1] || 'جنيه مصري';
-  const sym = parts[0];
+  const isEn = currentLang === 'en';
+  const nameMap = {
+    'جنيه مصري':'Egyptian Pound','ريال سعودي':'Saudi Riyal','درهم إماراتي':'UAE Dirham',
+    'دينار كويتي':'Kuwaiti Dinar','دينار بحريني':'Bahraini Dinar','ريال قطري':'Qatari Riyal',
+    'ريال عُماني':'Omani Rial','دينار أردني':'Jordanian Dinar','ليرة لبنانية':'Lebanese Pound',
+    'جنيه سوداني':'Sudanese Pound','دولار أمريكي':'US Dollar','يورو':'Euro','جنيه إسترليني':'British Pound'
+  };
+  const arName = parts[1] || 'جنيه مصري';
+  const displayName = isEn ? (nameMap[arName] || arName) : arName;
   const lbl = document.getElementById('lbl-currency');
-  if(lbl) lbl.textContent = fullName;
+  if(lbl) lbl.textContent = displayName;
   renderSummary();
   renderByPlace();
-  showToast('✅ تم تغيير العملة إلى ' + fullName);
+  showToast((isEn ? '✅ Currency changed to ' : '✅ تم تغيير العملة إلى ') + displayName);
 }
 function loadCurrency(){
   const saved = localStorage.getItem('sj_currency') || 'ج|جنيه مصري';
@@ -3362,7 +3458,20 @@ function loadCurrency(){
   if(sel) sel.value = saved;
   const parts = saved.split('|');
   const lbl = document.getElementById('lbl-currency');
-  if(lbl) lbl.textContent = parts[1] || 'جنيه مصري';
+  if(lbl){
+    if(currentLang === 'en'){
+      // Map Arabic currency names → English
+      const nameMap = {
+        'جنيه مصري':'Egyptian Pound','ريال سعودي':'Saudi Riyal','درهم إماراتي':'UAE Dirham',
+        'دينار كويتي':'Kuwaiti Dinar','دينار بحريني':'Bahraini Dinar','ريال قطري':'Qatari Riyal',
+        'ريال عُماني':'Omani Rial','دينار أردني':'Jordanian Dinar','ليرة لبنانية':'Lebanese Pound',
+        'جنيه سوداني':'Sudanese Pound','دولار أمريكي':'US Dollar','يورو':'Euro','جنيه إسترليني':'British Pound'
+      };
+      lbl.textContent = nameMap[parts[1]] || parts[1] || 'Egyptian Pound';
+    } else {
+      lbl.textContent = parts[1] || 'جنيه مصري';
+    }
+  }
 }
 
 
