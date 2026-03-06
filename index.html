@@ -2273,7 +2273,7 @@ async function exportAndShare(){
     byPlace[k].extra += s.extraPay;
   });
 
-  const period     = sm||((sf||'Start')+' → '+(st_||'End'));
+  const period     = sm||((sf||(isEn?'Start':'البداية'))+' → '+(st_||(isEn?'End':'النهاية')));
   const taxPct     = parseFloat(document.getElementById('tax-pct')?.value)||0;
   const grossTotal = list.reduce((a,s)=>a+s.total, 0);
   const globalTaxAmtE = grossTotal * taxPct / 100;
@@ -3476,21 +3476,20 @@ function checkOnboarding(){
 
 // ══ STATISTICS ══
 function renderStats(){
+  const isEn = currentLang === 'en';
+  const cu = ' ' + getCurrency();
   if(!shifts.length){
-    document.getElementById('stat-total-income').textContent = '0 ج';
+    document.getElementById('stat-total-income').textContent = '0' + cu;
     document.getElementById('stat-total-shifts').textContent = '0';
-    document.getElementById('stat-avg-monthly').textContent = '0 ج';
+    document.getElementById('stat-avg-monthly').textContent = '0' + cu;
     document.getElementById('stat-avg-shifts').textContent = '0';
     document.getElementById('stat-best-month-name').textContent = '—';
-    document.getElementById('stat-best-month-val').textContent = '0 ج';
-    document.getElementById('stat-best-place-list').innerHTML = '<div style="color:var(--muted);font-size:.82rem;">لا يوجد بيانات بعد</div>';
+    document.getElementById('stat-best-month-val').textContent = '0' + cu;
+    document.getElementById('stat-best-place-list').innerHTML = '<div style="color:var(--muted);font-size:.82rem;">'+(isEn?'No data yet':'لا يوجد بيانات بعد')+'</div>';
     document.getElementById('stat-monthly-chart').innerHTML = '';
     document.getElementById('stat-monthly-labels').innerHTML = '';
     return;
   }
-
-  const isEn = currentLang === 'en';
-  const cu = ' ' + getCurrency();
 
   // ── إجمالي الدخل والشيفتات ──
   const totalIncome = shifts.reduce((a,s)=>a+s.total,0);
