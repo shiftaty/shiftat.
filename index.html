@@ -1139,44 +1139,15 @@ async function _hashStr(str){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 const FREE_LIMIT = 1;
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbx25NN1w7eG8cg1hcDkIue0zxYLEilnMe_92UOHloS8fmd4MzkzVB7k2Y1k_TnghTVw/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz-vo0FCoiEJ7uw6tCeREs-3FyOREt5c3kIbVop-RuF06iNcfpCRiNzlkJIrzymEADQ/exec';
 
 let isActivated = localStorage.getItem('sj_activated') === 'true';
 let isFreeMode  = localStorage.getItem('sj_freemode')  === 'true';
 let codesStore  = JSON.parse(localStorage.getItem('sj_codes') || '{}');
-
-// ✅ تحميل الإعدادات من IndexedDB (مش بتتمسح بـ clear history)
-(async function _loadSettingsFromIDB(){
-  try{
-    const idbActivated = await _idbGet('sj_activated');
-    const idbFreemode  = await _idbGet('sj_freemode');
-    const idbCodes     = await _idbGet('sj_codes');
-    const idbLang      = await _idbGet('sj_lang');
-    const idbPhone     = await _idbGet('sj_lock_phone_h');
-    if(idbActivated && !localStorage.getItem('sj_activated')){
-      localStorage.setItem('sj_activated', idbActivated);
-      isActivated = idbActivated === 'true';
-    }
-    if(idbFreemode && !localStorage.getItem('sj_freemode')){
-      localStorage.setItem('sj_freemode', idbFreemode);
-      isFreeMode = idbFreemode === 'true';
-    }
-    if(idbCodes && !localStorage.getItem('sj_codes')){
-      localStorage.setItem('sj_codes', idbCodes);
-      try{ codesStore = JSON.parse(idbCodes); }catch(e){}
-    }
-    if(idbLang && !localStorage.getItem('sj_lang')){
-      localStorage.setItem('sj_lang', idbLang);
-    }
-    if(idbPhone && !localStorage.getItem('sj_lock_phone_h')){
-      localStorage.setItem('sj_lock_phone_h', idbPhone);
-    }
-  }catch(e){}
-})();
-
-function saveCodes(){
-  localStorage.setItem('sj_codes', JSON.stringify(codesStore));
-  _idbSet('sj_codes', JSON.stringify(codesStore)).catch(()=>{});
+function saveCodes(){ 
+  const c = JSON.stringify(codesStore);
+  localStorage.setItem('sj_codes', c); 
+  _cacheSet('sj_codes', c);
 }
 
 // تحقق عبر fetch مع no-cors fallback
@@ -1231,9 +1202,8 @@ function useFree(){
   isActivated = false;
   localStorage.setItem('sj_freemode','true');
   localStorage.removeItem('sj_activated');
-  // ✅ حفظ في IndexedDB
-  _idbSet('sj_freemode','true').catch(()=>{});
-  _idbSet('sj_activated','').catch(()=>{});
+  _cacheSet('sj_freemode','true');
+  _cacheSet('sj_activated','');
   hideOverlay();
   document.getElementById('upgrade-banner').style.display = 'block';
   showToast('✅ النسخة المجانية — مكان واحد + شيفتات غير محدودة');
@@ -1249,6 +1219,27 @@ function hideOverlay(){
   o.style.display = 'none';
 }
 
+// ── حفظ الكود المفعّل بـ hash عشان التحقق offline ──
+async function _saveActivatedCodeHash(code){
+  try{
+    const h = await _sha256('ACTIVATED:' + code + _SALT);
+    localStorage.setItem('sj_act_code_h', h);
+    localStorage.setItem('sj_act_code_raw', code); // نحتاجه للاسترجاع
+    _cacheSet('sj_act_code_h',   h);
+    _cacheSet('sj_act_code_raw', code);
+  }catch(e){}
+}
+
+// ── تحقق offline من الكود المدخل ──
+async function _verifyCodeOffline(code){
+  try{
+    let savedHash = localStorage.getItem('sj_act_code_h') || await _cacheGet('sj_act_code_h');
+    if(!savedHash) return false;
+    const h = await _sha256('ACTIVATED:' + code + _SALT);
+    return h === savedHash;
+  }catch(e){ return false; }
+}
+
 async function tryActivate(){
   const code = document.getElementById('act-code-input').value.trim().toUpperCase();
   const err  = document.getElementById('act-err');
@@ -1259,6 +1250,25 @@ async function tryActivate(){
   btn.textContent='⏳ جاري التحقق...';
   btn.disabled=true;
 
+  // ── أولاً: جرب التحقق offline (لو اتمسحت البيانات وعنده نفس الكود) ──
+  const offlineOk = await _verifyCodeOffline(code);
+  if(offlineOk){
+    isActivated=true; isFreeMode=false;
+    localStorage.setItem('sj_activated','true');
+    localStorage.removeItem('sj_freemode');
+    _cacheSet('sj_activated','true');
+    _cacheSet('sj_freemode','');
+    await _saveActivatedCodeHash(code);
+    hideOverlay();
+    document.getElementById('upgrade-banner').style.display='none';
+    btn.textContent='🔓 تفعيل النسخة الكاملة';
+    btn.disabled=false;
+    showToast('✅ تم التعرف على كودك وإعادة التفعيل!');
+    setTimeout(showBackupPrompt, 800);
+    return;
+  }
+
+  // ── ثانياً: تحقق عبر السيرفر ──
   try{
     const res = await gasCall({action:'verify', code:code});
     if(res.valid){
@@ -1266,12 +1276,13 @@ async function tryActivate(){
       isActivated=true; isFreeMode=false;
       localStorage.setItem('sj_activated','true');
       localStorage.removeItem('sj_freemode');
-      // ✅ حفظ في IndexedDB عشان مايتمسحش لو عمل clear history
-      _idbSet('sj_activated','true').catch(()=>{});
-      _idbSet('sj_freemode','').catch(()=>{});
+      _cacheSet('sj_activated','true');
+      _cacheSet('sj_freemode','');
+      await _saveActivatedCodeHash(code);
       hideOverlay();
       document.getElementById('upgrade-banner').style.display='none';
       showToast('🎉 تم التفعيل! مرحباً بك في النسخة الكاملة');
+      setTimeout(showBackupPrompt, 800);
     } else {
       err.textContent = res.reason==='used' ? '❌ هذا الكود تم استخدامه من قبل' : '❌ كود غير صحيح';
       err.style.display='block';
@@ -1290,9 +1301,12 @@ function _activateSuccess(){
   isActivated=true; isFreeMode=false;
   localStorage.setItem('sj_activated','true');
   localStorage.removeItem('sj_freemode');
+  _cacheSet('sj_activated','true');
+  _cacheSet('sj_freemode','');
   hideOverlay();
   document.getElementById('upgrade-banner').style.display='none';
   showToast('🎉 تم التفعيل! مرحباً بك في النسخة الكاملة');
+  setTimeout(showBackupPrompt, 800);
 }
 
 // tap counter في DOMContentLoaded
@@ -1372,20 +1386,6 @@ async function _loadData(){
     try{ const v = JSON.parse(str); return (v !== null && v !== undefined) ? v : def; }
     catch(e){ return def; }
   }
-  function _bestArr(a, b, c){ 
-    if(Array.isArray(a) && a.length > 0) return a;
-    if(Array.isArray(b) && b.length > 0) return b;
-    if(Array.isArray(c) && c.length > 0) return c;
-    if(Array.isArray(a)) return a;
-    if(Array.isArray(b)) return b;
-    return c || [];
-  }
-  function _bestObj(a, b, c){
-    if(a && typeof a==='object' && Object.keys(a).length > 0) return a;
-    if(b && typeof b==='object' && Object.keys(b).length > 0) return b;
-    if(c && typeof c==='object' && Object.keys(c).length > 0) return c;
-    return {};
-  }
 
   // المصدر 1: IndexedDB (الأقوى على iOS)
   let idb_p='[]', idb_s='[]', idb_pt='{}', idb_pd='{}';
@@ -1399,7 +1399,46 @@ async function _loadData(){
     }
   }catch(e){}
 
-  // المصدر 2: مشفر (localStorage)
+  // المصدر 2: Cache Storage (يصمد مع clear browsing data!)
+  let cache_p='[]', cache_s='[]', cache_pt='{}', cache_pd='{}';
+  try{
+    const cAll = await _cacheGetAll();
+    cache_p  = cAll['sj_places'] || '[]';
+    cache_s  = cAll['sj_shifts'] || '[]';
+    cache_pt = cAll['sj_ptax']   || '{}';
+    cache_pd = cAll['sj_pdisc']  || '{}';
+    // استعادة بيانات التفعيل من Cache لو اتمسحت من localStorage
+    if(cAll['sj_activated'] && !localStorage.getItem('sj_activated')){
+      try{ localStorage.setItem('sj_activated', cAll['sj_activated']); }catch(e){}
+      isActivated = cAll['sj_activated'] === 'true';
+    }
+    if(cAll['sj_freemode'] && !localStorage.getItem('sj_freemode')){
+      try{ localStorage.setItem('sj_freemode', cAll['sj_freemode']); }catch(e){}
+      isFreeMode = cAll['sj_freemode'] === 'true';
+    }
+    if(cAll['sj_codes'] && !localStorage.getItem('sj_codes')){
+      try{ localStorage.setItem('sj_codes', cAll['sj_codes']); }catch(e){}
+      try{ codesStore = JSON.parse(cAll['sj_codes']); }catch(e){}
+    }
+    if(cAll['sj_device_id'] && !localStorage.getItem('sj_device_id')){
+      try{ localStorage.setItem('sj_device_id', cAll['sj_device_id']); }catch(e){}
+    }
+    if(cAll['sj_lock_phone_h'] && !localStorage.getItem('sj_lock_phone_h')){
+      try{ localStorage.setItem('sj_lock_phone_h', cAll['sj_lock_phone_h']); }catch(e){}
+    }
+    if(cAll['sj_lang'] && !localStorage.getItem('sj_lang')){
+      try{ localStorage.setItem('sj_lang', cAll['sj_lang']); }catch(e){}
+    }
+    // استعادة hash الكود المفعّل
+    if(cAll['sj_act_code_h'] && !localStorage.getItem('sj_act_code_h')){
+      try{ localStorage.setItem('sj_act_code_h',   cAll['sj_act_code_h']); }catch(e){}
+    }
+    if(cAll['sj_act_code_raw'] && !localStorage.getItem('sj_act_code_raw')){
+      try{ localStorage.setItem('sj_act_code_raw', cAll['sj_act_code_raw']); }catch(e){}
+    }
+  }catch(e){}
+
+  // المصدر 3: مشفر (localStorage)
   let enc_p='[]', enc_s='[]', enc_pt='{}', enc_pd='{}';
   try{
     enc_p  = await _secGet('sj_places','[]');
@@ -1408,32 +1447,32 @@ async function _loadData(){
     enc_pd = await _secGet('sj_pdisc','{}');
   }catch(e){}
 
-  // المصدر 3: plain backup
+  // المصدر 4: plain backup
   const plain_p  = localStorage.getItem('sj_places_plain')  || '[]';
   const plain_s  = localStorage.getItem('sj_shifts_plain')  || '[]';
   const plain_pt = localStorage.getItem('sj_ptax_plain')    || '{}';
   const plain_pd = localStorage.getItem('sj_pdisc_plain')   || '{}';
 
-  // المصدر 4: legacy
+  // المصدر 5: legacy
   const leg_p  = localStorage.getItem('sj_places')  || '[]';
   const leg_s  = localStorage.getItem('sj_shifts')  || '[]';
   const leg_pt = localStorage.getItem('sj_ptax')    || '{}';
   const leg_pd = localStorage.getItem('sj_pdisc')   || '{}';
 
-  // اختار أفضل نتيجة — IndexedDB أولاً
-  function _best4Arr(a,b,c,d){
-    for(const x of [a,b,c,d]){ if(Array.isArray(x) && x.length>0) return x; }
+  // اختار أفضل نتيجة — Cache Storage وIndexedDB الأوان
+  function _best5Arr(a,b,c,d,e){
+    for(const x of [a,b,c,d,e]){ if(Array.isArray(x) && x.length>0) return x; }
     return [];
   }
-  function _best4Obj(a,b,c,d){
-    for(const x of [a,b,c,d]){ if(x && typeof x==='object' && Object.keys(x).length>0) return x; }
+  function _best5Obj(a,b,c,d,e){
+    for(const x of [a,b,c,d,e]){ if(x && typeof x==='object' && Object.keys(x).length>0) return x; }
     return {};
   }
 
-  places        = _best4Arr( _safeParse(idb_p,'[]'), _safeParse(enc_p,'[]'), _safeParse(plain_p,'[]'), _safeParse(leg_p,'[]') );
-  shifts        = _best4Arr( _safeParse(idb_s,'[]'), _safeParse(enc_s,'[]'), _safeParse(plain_s,'[]'), _safeParse(leg_s,'[]') );
-  placeTax      = _best4Obj( _safeParse(idb_pt,'{}'), _safeParse(enc_pt,'{}'), _safeParse(plain_pt,'{}'), _safeParse(leg_pt,'{}') );
-  placeDiscount = _best4Obj( _safeParse(idb_pd,'{}'), _safeParse(enc_pd,'{}'), _safeParse(plain_pd,'{}'), _safeParse(leg_pd,'{}') );
+  places        = _best5Arr( _safeParse(cache_p,'[]'), _safeParse(idb_p,'[]'), _safeParse(enc_p,'[]'), _safeParse(plain_p,'[]'), _safeParse(leg_p,'[]') );
+  shifts        = _best5Arr( _safeParse(cache_s,'[]'), _safeParse(idb_s,'[]'), _safeParse(enc_s,'[]'), _safeParse(plain_s,'[]'), _safeParse(leg_s,'[]') );
+  placeTax      = _best5Obj( _safeParse(cache_pt,'{}'), _safeParse(idb_pt,'{}'), _safeParse(enc_pt,'{}'), _safeParse(plain_pt,'{}'), _safeParse(leg_pt,'{}') );
+  placeDiscount = _best5Obj( _safeParse(cache_pd,'{}'), _safeParse(idb_pd,'{}'), _safeParse(enc_pd,'{}'), _safeParse(plain_pd,'{}'), _safeParse(leg_pd,'{}') );
 
   // بعد التحميل احفظ في كل الأماكن فورًا كحماية
   try{
@@ -1442,102 +1481,27 @@ async function _loadData(){
     localStorage.setItem('sj_ptax_plain',   JSON.stringify(placeTax));
     localStorage.setItem('sj_pdisc_plain',  JSON.stringify(placeDiscount));
   }catch(e){}
-  // sync إلى IndexedDB لو كانت فارغة وفيه بيانات في localStorage
+  // sync إلى IndexedDB + Cache Storage لو كانت فارغة وفيه بيانات في localStorage
   try{
-    if(_safeParse(idb_s,'[]').length === 0 && shifts.length > 0){
+    const needSync = (_safeParse(idb_s,'[]').length === 0 || _safeParse(cache_s,'[]').length === 0) && shifts.length > 0;
+    if(needSync){
+      const p  = JSON.stringify(places);
+      const s  = JSON.stringify(shifts);
+      const pt = JSON.stringify(placeTax);
+      const pd = JSON.stringify(placeDiscount);
       await Promise.all([
-        _idbSet('sj_places', JSON.stringify(places)),
-        _idbSet('sj_shifts', JSON.stringify(shifts)),
-        _idbSet('sj_ptax',   JSON.stringify(placeTax)),
-        _idbSet('sj_pdisc',  JSON.stringify(placeDiscount)),
+        _idbSet('sj_places', p),  _idbSet('sj_shifts', s),
+        _idbSet('sj_ptax',   pt), _idbSet('sj_pdisc',  pd),
+        _cacheSet('sj_places', p), _cacheSet('sj_shifts', s),
+        _cacheSet('sj_ptax',   pt), _cacheSet('sj_pdisc',  pd),
       ]);
     }
   }catch(e){}
-
-  // ☁️ لو كل المصادر المحلية فاضية — جرب السيرفر (الحل النهائي ضد clear history)
-  if(shifts.length === 0 && places.length === 0){
-    try{
-      const restored = await _cloudLoad();
-      if(restored){
-        renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderStats();
-        showToast('☁️ تم استعادة بياناتك من السيرفر تلقائياً ✅');
-        checkActivation();
-      }
-    }catch(e){}
-  }
 }
 let places   = [];
 let shifts   = [];
 let placeTax      = {};
 let placeDiscount = {};
-
-// ══════════════════════════════════════════════════════════════
-// ☁️ CLOUD SYNC — حفظ البيانات على السيرفر (ضمان 100%)
-// المستخدم بيتعرف بـ hash رقم التليفون بتاعه
-// حتى لو اتمسح كل حاجة من المتصفح، بياناته بترجع من السيرفر
-// ══════════════════════════════════════════════════════════════
-let _cloudUserId = null;
-let _cloudSyncTimer = null;
-const _CLOUD_DEBOUNCE_MS = 3000;
-
-async function _getCloudUserId(){
-  if(_cloudUserId) return _cloudUserId;
-  const phoneHash = await _idbGet('sj_lock_phone_h')
-                  || localStorage.getItem('sj_lock_phone_h');
-  if(!phoneHash) return null;
-  _cloudUserId = phoneHash.substring(0, 32);
-  return _cloudUserId;
-}
-
-function _scheduledCloudSync(){
-  if(_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
-  _cloudSyncTimer = setTimeout(_doCloudSync, _CLOUD_DEBOUNCE_MS);
-}
-
-async function _doCloudSync(){
-  try{
-    const uid = await _getCloudUserId();
-    if(!uid) return;
-    const payload = {
-      action:    'cloudSave',
-      uid:       uid,
-      places:    JSON.stringify(places),
-      shifts:    JSON.stringify(shifts),
-      ptax:      JSON.stringify(placeTax),
-      pdisc:     JSON.stringify(placeDiscount),
-      activated: localStorage.getItem('sj_activated') || await _idbGet('sj_activated') || '',
-      freemode:  localStorage.getItem('sj_freemode')  || await _idbGet('sj_freemode')  || '',
-      lang:      localStorage.getItem('sj_lang')      || await _idbGet('sj_lang')      || 'ar',
-    };
-    await gasCall(payload);
-  }catch(e){}
-}
-
-async function _cloudLoad(){
-  try{
-    const uid = await _getCloudUserId();
-    if(!uid) return false;
-    const res = await gasCall({ action:'cloudLoad', uid });
-    if(!res || res.error) return false;
-    const serverShifts = JSON.parse(res.shifts || '[]');
-    const serverPlaces = JSON.parse(res.places || '[]');
-    if(serverShifts.length === 0 && serverPlaces.length === 0) return false;
-    if(shifts.length === 0 && places.length === 0){
-      places        = serverPlaces;
-      shifts        = serverShifts;
-      placeTax      = JSON.parse(res.ptax  || '{}');
-      placeDiscount = JSON.parse(res.pdisc || '{}');
-      await save();
-      if(res.activated){ localStorage.setItem('sj_activated', res.activated); _idbSet('sj_activated', res.activated).catch(()=>{}); isActivated = res.activated==='true'; }
-      if(res.freemode) { localStorage.setItem('sj_freemode',  res.freemode);  _idbSet('sj_freemode',  res.freemode).catch(()=>{});  isFreeMode  = res.freemode==='true';  }
-      if(res.lang)     { localStorage.setItem('sj_lang',      res.lang);      _idbSet('sj_lang',      res.lang).catch(()=>{});                                            }
-      return true;
-    }
-    return false;
-  }catch(e){ return false; }
-}
-// ══════════════════════════════════════════════════════════════
-
 async function save(){
   const p  = JSON.stringify(places);
   const s  = JSON.stringify(shifts);
@@ -1552,50 +1516,69 @@ async function save(){
     localStorage.setItem('sj_pdisc_plain',  pd);
   }catch(e){}
 
-  // حفظ في مشفر + IndexedDB بالتوازي
+  // حفظ في مشفر + IndexedDB + Cache Storage بالتوازي
   await Promise.all([
-    _secSet('sj_places', p),
-    _secSet('sj_shifts', s),
-    _secSet('sj_ptax',   pt),
-    _secSet('sj_pdisc',  pd),
-    _idbSet('sj_places', p),
-    _idbSet('sj_shifts', s),
-    _idbSet('sj_ptax',   pt),
-    _idbSet('sj_pdisc',  pd),
+    _secSet('sj_places', p),  _secSet('sj_shifts', s),
+    _secSet('sj_ptax',   pt), _secSet('sj_pdisc',  pd),
+    _idbSet('sj_places', p),  _idbSet('sj_shifts', s),
+    _idbSet('sj_ptax',   pt), _idbSet('sj_pdisc',  pd),
+    _cacheSet('sj_places', p), _cacheSet('sj_shifts', s),
+    _cacheSet('sj_ptax',   pt), _cacheSet('sj_pdisc',  pd),
+    // حفظ بيانات التفعيل في Cache Storage دايماً
+    _cacheSaveActivation(),
   ]);
-  // ☁️ زامن مع السيرفر (debounced — بعد 3 ثواني من آخر تغيير)
-  _scheduledCloudSync();
 }
 
-// ══════════════════════════════════════════════════════════════
+// حفظ كل بيانات التفعيل في Cache Storage
+async function _cacheSaveActivation(){
+  try{
+    const activated  = localStorage.getItem('sj_activated')    || '';
+    const freemode   = localStorage.getItem('sj_freemode')     || '';
+    const codes      = localStorage.getItem('sj_codes')        || '{}';
+    const deviceId   = localStorage.getItem('sj_device_id')    || '';
+    const lockPhone  = localStorage.getItem('sj_lock_phone_h') || '';
+    const lang       = localStorage.getItem('sj_lang')         || 'ar';
+    const actCodeH   = localStorage.getItem('sj_act_code_h')   || '';
+    const actCodeRaw = localStorage.getItem('sj_act_code_raw') || '';
+    await Promise.all([
+      activated   ? _cacheSet('sj_activated',    activated)   : Promise.resolve(),
+      freemode    ? _cacheSet('sj_freemode',     freemode)    : Promise.resolve(),
+      codes       ? _cacheSet('sj_codes',        codes)       : Promise.resolve(),
+      deviceId    ? _cacheSet('sj_device_id',    deviceId)    : Promise.resolve(),
+      lockPhone   ? _cacheSet('sj_lock_phone_h', lockPhone)   : Promise.resolve(),
+      actCodeH    ? _cacheSet('sj_act_code_h',   actCodeH)    : Promise.resolve(),
+      actCodeRaw  ? _cacheSet('sj_act_code_raw', actCodeRaw)  : Promise.resolve(),
+      _cacheSet('sj_lang', lang),
+    ]);
+  }catch(e){}
+}
+
+// ── تصدير نسخة احتياطية ──
 function exportBackup(){
   const isEn = currentLang === 'en';
-  // async wrapper
-  (async()=>{
-    const backup = {
-      version: 1,
-      date: new Date().toISOString(),
-      places,
-      shifts,
-      placeTax,
-      placeDiscount,
-      activated:   localStorage.getItem('sj_activated')    || await _idbGet('sj_activated')    || '',
-      freemode:    localStorage.getItem('sj_freemode')     || await _idbGet('sj_freemode')     || '',
-      lang:        localStorage.getItem('sj_lang')         || await _idbGet('sj_lang')         || 'ar',
-      lock_phone:  localStorage.getItem('sj_lock_phone_h') || await _idbGet('sj_lock_phone_h') || '',
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    const dateStr = new Date().toISOString().split('T')[0];
-    a.href     = url;
-    a.download = 'SHIFTATY_backup_' + dateStr + '.json';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url), 3000);
-    localStorage.setItem('sj_last_backup', Date.now().toString());
-    dismissBackupReminder();
-    showToast(isEn ? '✅ Backup saved! Upload it to Drive/iCloud.' : '✅ تم حفظ النسخة! ارفعها على Drive أو iCloud للحماية.');
-  })();
+  const backup = {
+    version: 1,
+    date: new Date().toISOString(),
+    places,
+    shifts,
+    placeTax,
+    placeDiscount,
+    activated:   localStorage.getItem('sj_activated') || '',
+    freemode:    localStorage.getItem('sj_freemode')  || '',
+    lang:        localStorage.getItem('sj_lang')      || 'ar',
+    lock_phone:  localStorage.getItem('sj_lock_phone_h') || '',
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href     = url;
+  a.download = 'SHIFTATY_backup_' + dateStr + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  localStorage.setItem('sj_last_backup', Date.now().toString());
+  dismissBackupReminder();
+  showToast(isEn ? '✅ Backup saved! Upload it to Drive/iCloud.' : '✅ تم حفظ النسخة! ارفعها على Drive أو iCloud للحماية.');
 }
 
 // ── استعادة نسخة احتياطية ──
@@ -1620,10 +1603,12 @@ async function importBackup(event){
     placeTax      = data.placeTax      || {};
     placeDiscount = data.placeDiscount || {};
     await save();
-    if(data.activated)  { localStorage.setItem('sj_activated',    data.activated);  _idbSet('sj_activated',    data.activated).catch(()=>{}); }
-    if(data.freemode)   { localStorage.setItem('sj_freemode',     data.freemode);   _idbSet('sj_freemode',     data.freemode).catch(()=>{});  }
-    if(data.lang)       { localStorage.setItem('sj_lang',         data.lang);       _idbSet('sj_lang',         data.lang).catch(()=>{});      }
-    if(data.lock_phone) { localStorage.setItem('sj_lock_phone_h', data.lock_phone); _idbSet('sj_lock_phone_h', data.lock_phone).catch(()=>{}); }
+    if(data.activated)  localStorage.setItem('sj_activated',    data.activated);
+    if(data.freemode)   localStorage.setItem('sj_freemode',     data.freemode);
+    if(data.lang)       localStorage.setItem('sj_lang',         data.lang);
+    if(data.lock_phone) localStorage.setItem('sj_lock_phone_h', data.lock_phone);
+    // حفظ بيانات التفعيل في Cache Storage عشان تصمد مع clear browsing data
+    await _cacheSaveActivation();
     showToast(isEn ? '✅ Data restored successfully!' : '✅ تم استعادة البيانات بنجاح!');
     // تحديث اللغة لو النسخة كانت بلغة مختلفة
     if(data.lang && data.lang !== currentLang){
@@ -2682,14 +2667,14 @@ function t(key){ return (T[currentLang] && T[currentLang][key]) || T['ar'][key] 
 function toggleLang(){
   currentLang = currentLang === 'ar' ? 'en' : 'ar';
   localStorage.setItem('sj_lang', currentLang);
-  _idbSet('sj_lang', currentLang).catch(()=>{});
+  _cacheSet('sj_lang', currentLang);
   applyLang();
 }
 
 function lockToggleLang(){
   currentLang = currentLang === 'ar' ? 'en' : 'ar';
   localStorage.setItem('sj_lang', currentLang);
-  _idbSet('sj_lang', currentLang).catch(()=>{});
+  _cacheSet('sj_lang', currentLang);
   applyLang();
   applyLockLang();
 }
@@ -3089,6 +3074,40 @@ function showToast(msg){
   document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
+function showBackupPrompt(){
+  const isEn = currentLang === 'en';
+  // إزالة أي prompt قديم
+  const old = document.getElementById('backup-prompt-overlay');
+  if(old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'backup-prompt-overlay';
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(6,11,20,0.92);z-index:99999;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn .25s ease;`;
+
+  overlay.innerHTML = `
+    <div style="background:#0d1525;border:1px solid rgba(0,230,118,0.3);border-radius:24px 24px 0 0;padding:28px 22px 40px;max-width:480px;width:100%;text-align:center;">
+      <div style="font-size:2.6rem;margin-bottom:12px;">🎉</div>
+      <div style="font-size:1.1rem;font-weight:900;color:#00e676;margin-bottom:8px;">
+        ${isEn ? 'Activation Successful!' : 'تم التفعيل بنجاح!'}
+      </div>
+      <div style="font-size:.85rem;color:#546e7a;line-height:1.7;margin-bottom:22px;">
+        ${isEn
+          ? 'Important: Save a backup now so you can restore your activation if browser data is cleared.'
+          : '⚠️ مهم: احفظ نسخة احتياطية دلوقتي عشان لو اتمسحت بيانات المتصفح تقدر ترجّع التفعيل بسهولة.'}
+      </div>
+      <button onclick="exportBackup();document.getElementById('backup-prompt-overlay').remove();"
+        style="background:linear-gradient(135deg,#00897b,#00e676);border:none;border-radius:14px;padding:15px;width:100%;color:#000;font-family:Cairo,sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;margin-bottom:10px;">
+        📤 ${isEn ? 'Save Backup Now' : 'احفظ نسخة احتياطية دلوقتي'}
+      </button>
+      <button onclick="document.getElementById('backup-prompt-overlay').remove();"
+        style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px;width:100%;color:#546e7a;font-family:Cairo,sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;">
+        ${isEn ? 'Remind me later' : 'ذكّرني لاحقاً'}
+      </button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+}
+
 
 // ══════════════════════════════════════════════════════════════
 // 💾 IndexedDB LAYER — أقوى من localStorage على iOS
@@ -3153,6 +3172,51 @@ async function _idbGetAll(){
   } catch(e){ return null; }
 }
 // ══════════════════════════════════════════════════════════════
+// 🛡️ CACHE STORAGE LAYER — يصمد مع clear browsing data
+// المتصفح لا يمسح Cache Storage تلقائياً عند clear browsing data
+// المستخدم لازم يختار "Cached images and files" صراحةً — وحتى لو
+// اختارها فالـ Service Worker cache بيفضل موجود في معظم الحالات
+// ══════════════════════════════════════════════════════════════
+const _CACHE_NAME = 'shiftaty-persist-v1';
+const _CACHE_META_URL = 'https://shiftaty.app/__data__/';
+
+async function _cacheSet(key, value){
+  try{
+    const cache = await caches.open(_CACHE_NAME);
+    const body  = typeof value === 'string' ? value : JSON.stringify(value);
+    await cache.put(_CACHE_META_URL + key, new Response(body, {
+      headers: { 'Content-Type': 'application/json' }
+    }));
+  } catch(e){ /* silent */ }
+}
+
+async function _cacheGet(key){
+  try{
+    const cache = await caches.open(_CACHE_NAME);
+    const resp  = await cache.match(_CACHE_META_URL + key);
+    if(!resp) return null;
+    return await resp.text();
+  } catch(e){ return null; }
+}
+
+async function _cacheSetAll(obj){
+  try{
+    await Promise.all(Object.entries(obj).map(([k,v]) => _cacheSet(k, v)));
+  } catch(e){}
+}
+
+async function _cacheGetAll(){
+  try{
+    const keys = ['sj_places','sj_shifts','sj_ptax','sj_pdisc',
+                  'sj_activated','sj_freemode','sj_codes',
+                  'sj_device_id','sj_lock_phone_h','sj_lang'];
+    const vals = await Promise.all(keys.map(k => _cacheGet(k)));
+    const result = {};
+    keys.forEach((k,i) => { if(vals[i] !== null) result[k] = vals[i]; });
+    return result;
+  } catch(e){ return {}; }
+}
+// ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
 // 🛡️ SECURITY MODULE — Hash + Encrypted Storage + Anti-DevTools
 // ══════════════════════════════════════════════════════════════
@@ -3167,22 +3231,23 @@ async function _sha256(msg){
 let _cachedKey = null;
 async function _getKey(){
   if(_cachedKey) return _cachedKey;
-  // ✅ الأولوية: IndexedDB (مش بتتمسح لما تعمل clear history)
-  // ثم localStorage كـ fallback
-  let stableId = await _idbGet('sj_device_id')
-               || localStorage.getItem('sj_device_id')
+  // حفظ الـ device_id في أكتر من مكان عشان مايتمسحش
+  let stableId = localStorage.getItem('sj_device_id')
                || sessionStorage.getItem('sj_device_id_ss')
                || localStorage.getItem('sj_device_id_bk');
+  // جرب Cache Storage لو مش موجود في localStorage
+  if(!stableId){
+    try{ stableId = await _cacheGet('sj_device_id'); }catch(e){}
+  }
   if(!stableId){
     const arr = crypto.getRandomValues(new Uint8Array(16));
     stableId = Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('');
   }
-  // ✅ احفظه في IndexedDB أولاً (أقوى — مش بتتمسح بـ clear history)
-  try{ await _idbSet('sj_device_id', stableId); }catch(e){}
-  // ثم localStorage كـ mirror احتياطي
+  // احفظه في أكتر من مكان
   try{ localStorage.setItem('sj_device_id', stableId); }catch(e){}
   try{ sessionStorage.setItem('sj_device_id_ss', stableId); }catch(e){}
   try{ localStorage.setItem('sj_device_id_bk', stableId); }catch(e){}
+  try{ _cacheSet('sj_device_id', stableId); }catch(e){}
   const raw = await crypto.subtle.importKey('raw', new TextEncoder().encode(_SALT + stableId), {name:'PBKDF2'}, false, ['deriveKey']);
   _cachedKey = await crypto.subtle.deriveKey({name:'PBKDF2', salt:new TextEncoder().encode(_SALT), iterations:1000, hash:'SHA-256'}, raw, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
   return _cachedKey;
@@ -3369,8 +3434,7 @@ async function lockSubmit(){
   if(!savedHash){
     // أول مرة — حفظ الـ hash
     localStorage.setItem('sj_lock_phone_h', inputHash);
-    // ✅ حفظ في IndexedDB عشان مايتمسحش بـ clear history
-    _idbSet('sj_lock_phone_h', inputHash).catch(()=>{});
+    _cacheSet('sj_lock_phone_h', inputHash);
     const remember = document.getElementById('lock-remember').checked;
     const sessionToken = await _sha256(inputHash + _SALT + 'session');
     // دايمًا نحفظ في sessionStorage (يشتغل على iOS)
@@ -3427,13 +3491,6 @@ function showLockScreen(){
 
 function hideLockScreen(){
   document.getElementById('lock-screen').style.display='none';
-  // ☁️ حدّث الـ cloudUserId بعد الدخول مباشرةً
-  _cloudUserId = null; // reset عشان يتحسب من جديد
-  // sync فوري بعد الدخول — بعد ثانيتين عشان _loadData يخلص أول
-  setTimeout(async ()=>{
-    const uid = await _getCloudUserId();
-    if(uid) _scheduledCloudSync();
-  }, 2000);
 }
 
 async function changeLockPhone(){
@@ -3446,21 +3503,19 @@ async function changeLockPhone(){
   if(!newPhone || newPhone.length < 10){ showToast('❌ رقم غير صحيح'); return; }
   const newHash = await _sha256(newPhone + _SALT);
   localStorage.setItem('sj_lock_phone_h', newHash);
-  // ✅ حفظ في IndexedDB
-  _idbSet('sj_lock_phone_h', newHash).catch(()=>{});
+  _cacheSet('sj_lock_phone_h', newHash);
   localStorage.removeItem('sj_lock_session');
   sessionStorage.removeItem('sj_runtime_session');
   showToast('✅ تم تغيير رقم القفل بنجاح');
 }
 
 async function checkLock(){
-  // ✅ لو localStorage اتمسح، رجّع رقم التليفون من IndexedDB
   let phoneHash = localStorage.getItem('sj_lock_phone_h');
+  // لو اتمسح من localStorage — جرب Cache Storage
   if(!phoneHash){
-    phoneHash = await _idbGet('sj_lock_phone_h');
+    try{ phoneHash = await _cacheGet('sj_lock_phone_h'); }catch(e){}
     if(phoneHash){
-      // استعد localStorage من IndexedDB
-      localStorage.setItem('sj_lock_phone_h', phoneHash);
+      try{ localStorage.setItem('sj_lock_phone_h', phoneHash); }catch(e){}
     }
   }
   if(!phoneHash){ showLockScreen(); return; }
@@ -3489,6 +3544,9 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   checkOnboarding();
   // شغّل checkLock و _loadData بالتوازي عشان نوفر وقت الفتح
   const [_lockResult] = await Promise.all([checkLock(), _loadData()]);
+  // حفظ بيانات التفعيل في Cache Storage فوراً عند كل تشغيل
+  // ده مهم عشان العملاء الموجودين يتهاجروا تلقائياً للـ Cache Storage
+  _cacheSaveActivation();
   // لو في ?reset في الـ URL — امسح كل حاجة وابدأ من الأول
   if(window.location.search.includes('reset') && window.location.search.includes('confirm=yes')){
     // backup before clearing
@@ -3596,28 +3654,38 @@ function checkBackupReminder(){
   const isEn = currentLang === 'en';
   const last = parseInt(localStorage.getItem('sj_last_backup') || '0');
   const now  = Date.now();
+  const days3 = 3 * 24 * 60 * 60 * 1000;
   const days7 = 7 * 24 * 60 * 60 * 1000;
   const dismissed = parseInt(localStorage.getItem('sj_backup_dismissed') || '0');
-  // لو اتعمل dismiss من أقل من يوم — متظهرش
-  if(now - dismissed < 24 * 60 * 60 * 1000) return;
-  // لو مفيش نسخة خالص أو من أكتر من 7 أيام
-  if(last === 0 || now - last > days7){
+  // لو اتعمل dismiss من أقل من يوم — متظهرش (إلا لو من أكتر من 7 أيام = مهم جداً)
+  const isUrgent = (last === 0 && shifts.length > 0) || (last > 0 && now - last > days7);
+  if(!isUrgent && now - dismissed < 24 * 60 * 60 * 1000) return;
+  // لو مفيش نسخة خالص وعنده بيانات، أو من أكتر من 3 أيام
+  if((last === 0 && shifts.length > 0) || (last > 0 && now - last > days3)){
     const banner = document.getElementById('backup-reminder-banner');
     if(!banner) return;
     const daysAgo = last === 0 ? null : Math.floor((now - last) / (24*60*60*1000));
-    const msg = document.getElementById('backup-reminder-msg');
+    const msg   = document.getElementById('backup-reminder-msg');
     const title = document.getElementById('backup-reminder-title');
-    const btn = document.getElementById('backup-reminder-btn');
-    const dis = document.getElementById('backup-dismiss-btn');
+    const btn   = document.getElementById('backup-reminder-btn');
+    const dis   = document.getElementById('backup-dismiss-btn');
     if(last === 0){
-      if(title) title.textContent = isEn ? 'No backup yet!' : 'لا توجد نسخة احتياطية بعد!';
-      if(msg)   msg.textContent   = isEn ? 'Protect your data — save a backup now.' : 'احمِ بياناتك — احفظ نسخة احتياطية الآن.';
+      if(title) title.textContent = isEn ? '⚠️ No backup yet!' : '⚠️ لا توجد نسخة احتياطية!';
+      if(msg)   msg.textContent   = isEn
+        ? 'If you clear browser data, ALL your shifts will be lost! Save a backup now.'
+        : '⚠️ لو عملت "مسح بيانات المتصفح" هاتخسر كل شيفتاتك! احفظ نسخة احتياطية دلوقتي.';
     } else {
-      if(title) title.textContent = isEn ? 'Backup Reminder' : 'تذكير: نسخ احتياطي';
-      if(msg)   msg.textContent   = isEn ? `Last backup ${daysAgo} days ago — save now to avoid data loss` : `آخر نسخة منذ ${daysAgo} أيام — احفظ نسخة جديدة لحماية بياناتك`;
+      if(title) title.textContent = isEn ? '🔔 Backup Reminder' : '🔔 تذكير: نسخ احتياطي';
+      if(msg)   msg.textContent   = isEn
+        ? `Last backup ${daysAgo} days ago — clear browser data = data loss!`
+        : `آخر نسخة منذ ${daysAgo} ${daysAgo===1?'يوم':'أيام'} — مسح بيانات المتصفح = فقدان البيانات!`;
     }
     if(btn) btn.textContent = isEn ? '📤 Save Now' : '📤 احفظ دلوقتي';
-    if(dis) dis.textContent = isEn ? 'Later' : 'لاحقاً';
+    // لو أكتر من 7 أيام — اخفي زر "لاحقاً" عشان يكون إجباري
+    if(dis){
+      if(isUrgent){ dis.style.display = 'none'; }
+      else { dis.style.display = ''; dis.textContent = isEn ? 'Later' : 'لاحقاً'; }
+    }
     banner.classList.add('show');
     banner.style.display = 'flex';
   }
