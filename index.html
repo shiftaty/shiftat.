@@ -637,7 +637,7 @@
       🤖 أندرويد
     </button>
 
-    <button id="install-ios-btn" onclick="handleInstall('ios')" style="display:none;flex:1;min-width:70px;background:linear-gradient(135deg,#555,#aaa);border:none;color:#fff;padding:7px 8px;border-radius:10px;font-family:Cairo,sans-serif;font-weight:800;font-size:.72rem;cursor:pointer;align-items:center;justify-content:center;gap:4px;">
+    <button id="install-ios-btn" onclick="handleInstall('ios')" style="display:none;flex:1;min-width:70px;background:linear-gradient(135deg,#1a1a2e,#4a4a6a);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 8px;border-radius:10px;font-family:Cairo,sans-serif;font-weight:800;font-size:.72rem;cursor:pointer;align-items:center;justify-content:center;gap:4px;">
        iPhone
     </button>
 
@@ -2799,29 +2799,7 @@ function toggleLang(){
   applyLang();
 }
 
-function lockToggleLang(){
-  currentLang = currentLang === 'ar' ? 'en' : 'ar';
-  localStorage.setItem('sj_lang', currentLang);
-  _cacheSet('sj_lang', currentLang);
-  applyLang();
-  applyLockLang();
-}
-
-function applyLockLang(){
-  const isEn = currentLang === 'en';
-  const s = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
-  const lockDir = isEn ? 'ltr' : 'rtl';
-  const lockScreen = document.getElementById('lock-screen');
-  if(lockScreen) lockScreen.style.direction = lockDir;
-  s('lock-lang-label',   isEn ? 'عربي'                                    : 'English');
-  s('lock-subtitle',     isEn ? 'Enter your phone number to continue'      : 'أدخل رقم تليفونك للدخول');
-  s('lock-phone-lbl',    isEn ? '📱 Phone Number'                          : '📱 رقم التليفون');
-  s('lock-enter-btn',    isEn ? 'Enter ⚡'                                  : 'دخول ⚡');
-  s('lock-privacy-note', isEn ? '🔒 Your data is stored on your device only': '🔒 بياناتك محفوظة على جهازك فقط');
-  // error messages reset on lang change
-  const errEl = document.getElementById('lock-error');
-  if(errEl) errEl.textContent = '';
-}
+// lockToggleLang + applyLockLang removed (lock screen disabled)
 
 function applyLang(){
   const isEn = currentLang === 'en';
@@ -2839,9 +2817,6 @@ function applyLang(){
     });
   // ── month selects — refresh to keep English labels ──
   populateMonthSelects();
-
-  // ترجمة شاشة القفل
-  applyLockLang();
 
   // helper — set text if element exists
   const s = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
@@ -3545,22 +3520,7 @@ function _markIOSAction(){
 }
 
 // iOS Fix: helper to check if session is still valid
-function _hasValidSession(){
-  const phone = localStorage.getItem('sj_lock_phone_h');
-  if(!phone) return true; // مفيش قفل أصلاً
-  // ① sessionStorage
-  const runtimeSession = sessionStorage.getItem('sj_runtime_session');
-  if(runtimeSession && runtimeSession.length > 10) return true;
-  // ② تذكرني
-  const session = localStorage.getItem('sj_lock_session');
-  const st      = localStorage.getItem('sj_lock_st');
-  if(session && session === st && session.length > 10) return true;
-  // ③ ios_token (30 دقيقة)
-  const iosToken     = localStorage.getItem('sj_ios_token');
-  const iosTokenTime = parseInt(localStorage.getItem('sj_ios_token_t') || '0');
-  if(iosToken && iosToken.length > 10 && Date.now() - iosTokenTime < 30 * 60 * 1000) return true;
-  return false;
-}
+// _hasValidSession removed (lock screen disabled)
 
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
@@ -3580,75 +3540,7 @@ window.addEventListener('pageshow', (e)=>{ /* lock disabled */ });
   if(_actual < 1){ document.body.innerHTML=''; }
 })();
 
-// ══════════════════════════════════════════════
-// 🔐 LOCK SCREEN (Hashed Version)
-// ══════════════════════════════════════════════
-function lockInputChanged(){
-  document.getElementById('lock-error').textContent='';
-  const inp = document.getElementById('lock-input');
-  inp.value = inp.value.replace(/[^0-9]/g,'');
-}
 
-async function lockSubmit(){
-  if(_lockAttempts >= _MAX_ATTEMPTS){
-    document.getElementById('lock-error').textContent='⛔ تجاوزت المحاولات المسموحة، أعد تشغيل التطبيق';
-    return;
-  }
-  const inp = document.getElementById('lock-input').value.trim();
-  const errEl = document.getElementById('lock-error');
-  if(inp.length < 10 || inp.length > 11){
-    errEl.textContent = '❌ أدخل رقم تليفون صحيح (10-11 رقم)';
-    return;
-  }
-  const savedHash = localStorage.getItem('sj_lock_phone_h');
-  const inputHash = await _sha256(inp + _SALT);
-  if(!savedHash){
-    // أول مرة — حفظ الـ hash
-    localStorage.setItem('sj_lock_phone_h', inputHash);
-    _cacheSet('sj_lock_phone_h', inputHash);
-    const remember = document.getElementById('lock-remember').checked;
-    const sessionToken = await _sha256(inputHash + _SALT + 'session');
-    // دايمًا نحفظ في sessionStorage (يشتغل على iOS)
-    sessionStorage.setItem('sj_runtime_session', sessionToken);
-    // iOS Fix: short-lived localStorage token as extra fallback
-    localStorage.setItem('sj_ios_token', sessionToken);
-    localStorage.setItem('sj_ios_token_t', Date.now().toString());
-    if(remember){
-      localStorage.setItem('sj_lock_session', sessionToken);
-      localStorage.setItem('sj_lock_st', sessionToken);
-    } else {
-      localStorage.removeItem('sj_lock_session');
-      localStorage.setItem('sj_lock_st', '');
-    }
-    hideLockScreen();
-  } else {
-    if(inputHash === savedHash){
-      _lockAttempts = 0;
-      const remember = document.getElementById('lock-remember').checked;
-      const sessionToken = await _sha256(savedHash + _SALT + 'session');
-      // دايمًا نحفظ في sessionStorage (يشتغل على iOS)
-      sessionStorage.setItem('sj_runtime_session', sessionToken);
-      // iOS Fix: short-lived localStorage token as extra fallback
-      localStorage.setItem('sj_ios_token', sessionToken);
-      localStorage.setItem('sj_ios_token_t', Date.now().toString());
-      if(remember){
-        localStorage.setItem('sj_lock_session', sessionToken);
-        localStorage.setItem('sj_lock_st', sessionToken);
-      } else {
-        localStorage.removeItem('sj_lock_session');
-        localStorage.setItem('sj_lock_st', '');
-      }
-      hideLockScreen();
-    } else {
-      _lockAttempts++;
-      const left = _MAX_ATTEMPTS - _lockAttempts;
-      errEl.textContent = `❌ الرقم غلط — باقي ${left} محاولة`;
-      document.getElementById('lock-input').value='';
-      // تأخير متزايد لمنع Brute Force
-      await new Promise(r=>setTimeout(r, _lockAttempts * 800));
-    }
-  }
-}
 
 // ── Lock screen disabled — Firebase Auth handles everything ──
 function showLockScreen(){ /* disabled */ }
@@ -3980,7 +3872,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   if(localStorage.getItem('sj_lang') === 'en'){
     applyLang();
   } else {
-    applyLockLang(); // تأكد إن شاشة القفل عربي من الأول
   }
 
   // Register SW — حماية من المسح + offline
