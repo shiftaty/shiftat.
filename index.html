@@ -1366,8 +1366,7 @@ async function tryActivate(){
     document.getElementById('upgrade-banner').style.display='none';
     btn.textContent='🔓 تفعيل النسخة الكاملة';
     btn.disabled=false;
-    showToast('✅ تم التعرف على كودك وإعادة التفعيل!');
-    setTimeout(showBackupPrompt, 800);
+    showToast('✅ تم التعرف على كودك وإعادة التفعيل! بياناتك محفوظة على الكلاود ☁️');
     return;
   }
 
@@ -1386,8 +1385,7 @@ async function tryActivate(){
       setTimeout(_fbSyncSave, 500);
       hideOverlay();
       document.getElementById('upgrade-banner').style.display='none';
-      showToast('🎉 تم التفعيل! مرحباً بك في النسخة الكاملة');
-      setTimeout(showBackupPrompt, 800);
+      showToast('🎉 تم التفعيل! بياناتك محفوظة تلقائياً على الكلاود ☁️');
     } else {
       err.textContent = res.reason==='used' ? '❌ هذا الكود تم استخدامه من قبل' : '❌ كود غير صحيح';
       err.style.display='block';
@@ -1412,8 +1410,7 @@ function _activateSuccess(){
   setTimeout(_fbSyncSave, 500);
   hideOverlay();
   document.getElementById('upgrade-banner').style.display='none';
-  showToast('🎉 تم التفعيل! مرحباً بك في النسخة الكاملة');
-  setTimeout(showBackupPrompt, 800);
+  showToast('🎉 تم التفعيل! بياناتك محفوظة تلقائياً على الكلاود ☁️');
 }
 
 // tap counter في DOMContentLoaded
@@ -3715,6 +3712,19 @@ async function _fbSyncLoad(){
 
     // لو في السحابة أكتر → استخدمها
     if(cloudShifts.length >= shifts.length) shifts = cloudShifts;
+
+    // ── لو البيانات المحلية فارغة أو أقل → حمّل كل التاريخ تلقائياً ──
+    if(shifts.length === 0 || cloudShifts.length < 1){
+      try{
+        const allMonths = await window._fbLoadAllMonths(uid);
+        let allShifts = [];
+        Object.values(allMonths).forEach(m => {
+          if(m.shifts) allShifts = allShifts.concat(JSON.parse(m.shifts));
+        });
+        allShifts.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+        if(allShifts.length > shifts.length) shifts = allShifts;
+      } catch(e){ console.log('full history load error:', e); }
+    }
 
     return true;
   } catch(e){ console.log('_fbSyncLoad error:', e); return false; }
