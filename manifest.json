@@ -1,7 +1,7 @@
 {
-  "name": "سجل شيفتاتي",
-  "short_name": "شيفتاتي",
-  "description": "تتبع ساعات عملك وأرباحك في كل مكان",
+  "name": "SHIFTATY",
+  "short_name": "SHIFTATY",
+  "description": "Track your work shifts and earnings anywhere",
   "start_url": "https://shiftaty.github.io/shiftat/",
   "scope": "https://shiftaty.github.io/shiftat/",
   "display": "standalone",
@@ -10,7 +10,10 @@
   "orientation": "portrait-primary",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["productivity", "finance"],
+  "categories": [
+    "productivity",
+    "finance"
+  ],
   "icons": [
     {
       "src": "./icon-192.png",
