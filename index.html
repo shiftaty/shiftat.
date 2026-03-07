@@ -350,7 +350,7 @@
   }
 
   /* ══ CUSTOM DATE PICKER ══ */
-  .cdp-overlay{position:fixed;inset:0;background:rgba(6,11,20,0.85);z-index:99999;display:none;align-items:flex-end;justify-content:center;}
+  .cdp-overlay{position:fixed;inset:0;background:rgba(6,11,20,0.85);z-index:99999;display:none;align-items:flex-end;justify-content:center;direction:ltr;}
   .cdp-overlay.open{display:flex;}
   .cdp-box{background:#0d1525;border:1px solid rgba(0,229,255,0.2);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0 0 24px;-webkit-transform:translateZ(0);transform:translateZ(0);}
   .cdp-header{background:linear-gradient(135deg,#3a1fa8,#0891b2);padding:18px 20px 14px;border-radius:24px 24px 0 0;text-align:center;}
@@ -3983,7 +3983,7 @@ function cdpInitDisplays(){
 
 <!-- ══ CUSTOM DATE PICKER OVERLAY ══ -->
 <div class="cdp-overlay" id="cdp-overlay" onclick="cdpOverlayClick(event)">
-  <div class="cdp-box" id="cdp-box">
+  <div class="cdp-box" id="cdp-box" dir="ltr">
     <div class="cdp-header">
       <div class="cdp-dow" id="cdp-dow">Saturday</div>
       <div class="cdp-fulldate" id="cdp-fulldate">Select a date</div>
