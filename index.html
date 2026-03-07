@@ -268,7 +268,7 @@
   .install-banner{display:none;background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,229,255,0.1));border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:16px;margin-bottom:14px;flex-direction:column;gap:10px;}
   .install-banner p{font-size:.85rem;color:var(--text);}
   .install-banner.show{display:flex;}
-  #backup-reminder-banner.show{display:flex!important;}
+  #backup-reminder-banner.show{display:none!important;}
 
   /* ── EDIT MODAL ── */
   .modal-overlay{position:fixed;inset:0;background:rgba(6,11,20,0.92);z-index:8000;display:none;align-items:center;justify-content:center;padding:20px;}
@@ -3179,37 +3179,7 @@ function showToast(msg){
 }
 
 function showBackupPrompt(){
-  const isEn = currentLang === 'en';
-  // إزالة أي prompt قديم
-  const old = document.getElementById('backup-prompt-overlay');
-  if(old) old.remove();
-
-  const overlay = document.createElement('div');
-  overlay.id = 'backup-prompt-overlay';
-  overlay.style.cssText = `position:fixed;inset:0;background:rgba(6,11,20,0.92);z-index:99999;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn .25s ease;`;
-
-  overlay.innerHTML = `
-    <div style="background:#0d1525;border:1px solid rgba(0,230,118,0.3);border-radius:24px 24px 0 0;padding:28px 22px 40px;max-width:480px;width:100%;text-align:center;">
-      <div style="font-size:2.6rem;margin-bottom:12px;">🎉</div>
-      <div style="font-size:1.1rem;font-weight:900;color:#00e676;margin-bottom:8px;">
-        ${isEn ? 'Activation Successful!' : 'تم التفعيل بنجاح!'}
-      </div>
-      <div style="font-size:.85rem;color:#546e7a;line-height:1.7;margin-bottom:22px;">
-        ${isEn
-          ? 'Important: Save a backup now so you can restore your activation if browser data is cleared.'
-          : '⚠️ مهم: احفظ نسخة احتياطية دلوقتي عشان لو اتمسحت بيانات المتصفح تقدر ترجّع التفعيل بسهولة.'}
-      </div>
-      <button onclick="exportBackup();document.getElementById('backup-prompt-overlay').remove();"
-        style="background:linear-gradient(135deg,#00897b,#00e676);border:none;border-radius:14px;padding:15px;width:100%;color:#000;font-family:Cairo,sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;margin-bottom:10px;">
-        📤 ${isEn ? 'Save Backup Now' : 'احفظ نسخة احتياطية دلوقتي'}
-      </button>
-      <button onclick="document.getElementById('backup-prompt-overlay').remove();"
-        style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px;width:100%;color:#546e7a;font-family:Cairo,sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;">
-        ${isEn ? 'Remind me later' : 'ذكّرني لاحقاً'}
-      </button>
-    </div>`;
-
-  document.body.appendChild(overlay);
+  // تم تعطيل — النسخ الاحتياطي يعمل تلقائياً على Firebase
 }
 
 
@@ -3933,44 +3903,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
 // ── Backup Reminder ──
 function checkBackupReminder(){
-  const isEn = currentLang === 'en';
-  const last = parseInt(localStorage.getItem('sj_last_backup') || '0');
-  const now  = Date.now();
-  const days3 = 3 * 24 * 60 * 60 * 1000;
-  const days7 = 7 * 24 * 60 * 60 * 1000;
-  const dismissed = parseInt(localStorage.getItem('sj_backup_dismissed') || '0');
-  // لو اتعمل dismiss من أقل من يوم — متظهرش (إلا لو من أكتر من 7 أيام = مهم جداً)
-  const isUrgent = (last === 0 && shifts.length > 0) || (last > 0 && now - last > days7);
-  if(!isUrgent && now - dismissed < 24 * 60 * 60 * 1000) return;
-  // لو مفيش نسخة خالص وعنده بيانات، أو من أكتر من 3 أيام
-  if((last === 0 && shifts.length > 0) || (last > 0 && now - last > days3)){
-    const banner = document.getElementById('backup-reminder-banner');
-    if(!banner) return;
-    const daysAgo = last === 0 ? null : Math.floor((now - last) / (24*60*60*1000));
-    const msg   = document.getElementById('backup-reminder-msg');
-    const title = document.getElementById('backup-reminder-title');
-    const btn   = document.getElementById('backup-reminder-btn');
-    const dis   = document.getElementById('backup-dismiss-btn');
-    if(last === 0){
-      if(title) title.textContent = isEn ? '⚠️ No backup yet!' : '⚠️ لا توجد نسخة احتياطية!';
-      if(msg)   msg.textContent   = isEn
-        ? 'If you clear browser data, ALL your shifts will be lost! Save a backup now.'
-        : '⚠️ لو عملت "مسح بيانات المتصفح" هاتخسر كل شيفتاتك! احفظ نسخة احتياطية دلوقتي.';
-    } else {
-      if(title) title.textContent = isEn ? '🔔 Backup Reminder' : '🔔 تذكير: نسخ احتياطي';
-      if(msg)   msg.textContent   = isEn
-        ? `Last backup ${daysAgo} days ago — clear browser data = data loss!`
-        : `آخر نسخة منذ ${daysAgo} ${daysAgo===1?'يوم':'أيام'} — مسح بيانات المتصفح = فقدان البيانات!`;
-    }
-    if(btn) btn.textContent = isEn ? '📤 Save Now' : '📤 احفظ دلوقتي';
-    // لو أكتر من 7 أيام — اخفي زر "لاحقاً" عشان يكون إجباري
-    if(dis){
-      if(isUrgent){ dis.style.display = 'none'; }
-      else { dis.style.display = ''; dis.textContent = isEn ? 'Later' : 'لاحقاً'; }
-    }
-    banner.classList.add('show');
-    banner.style.display = 'flex';
-  }
+  // تم تعطيل التذكير — النسخ الاحتياطي يعمل تلقائياً على Firebase
 }
 function dismissBackupReminder(){
   localStorage.setItem('sj_backup_dismissed', Date.now().toString());
