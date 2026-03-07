@@ -352,25 +352,27 @@
   /* ══ CUSTOM DATE PICKER ══ */
   .cdp-overlay{position:fixed;inset:0;background:rgba(6,11,20,0.85);z-index:99999;display:none;align-items:flex-end;justify-content:center;direction:ltr;}
   .cdp-overlay.open{display:flex;}
-  .cdp-box{background:#0d1525;border:1px solid rgba(0,229,255,0.2);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0 0 24px;-webkit-transform:translateZ(0);transform:translateZ(0);}
-  .cdp-header{background:linear-gradient(135deg,#3a1fa8,#0891b2);padding:18px 20px 14px;border-radius:24px 24px 0 0;text-align:center;}
+  .cdp-box{background:#0d1525;border:1px solid rgba(0,229,255,0.2);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0 0 24px;-webkit-transform:translateZ(0);transform:translateZ(0);direction:ltr !important;unicode-bidi:isolate;}
+  .cdp-header{background:linear-gradient(135deg,#3a1fa8,#0891b2);padding:18px 20px 14px;border-radius:24px 24px 0 0;text-align:center;direction:ltr !important;}
   .cdp-dow{font-size:.72rem;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
   .cdp-fulldate{font-size:1.4rem;font-weight:900;color:#fff;}
-  .cdp-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;}
+  .cdp-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;direction:ltr !important;}
   .cdp-nav-btn{background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);color:var(--cyan);width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
   .cdp-nav-btn:active{background:rgba(0,229,255,0.25);}
   .cdp-month-year{font-size:1rem;font-weight:800;color:var(--text);cursor:pointer;padding:6px 14px;border-radius:10px;border:1px solid rgba(0,229,255,0.15);background:rgba(0,229,255,0.05);}
   .cdp-month-year:active{background:rgba(0,229,255,0.15);}
-  .cdp-weekdays{display:grid;grid-template-columns:repeat(7,1fr);padding:0 10px;margin-bottom:2px;}
-  .cdp-weekdays span{text-align:center;font-size:.65rem;font-weight:700;color:var(--muted);padding:5px 0;text-transform:uppercase;}
-  .cdp-days{display:grid;grid-template-columns:repeat(7,1fr);padding:0 10px;gap:0;}
-  .cdp-day{height:42px;width:100%;display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:700;color:var(--text);border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;}
+  .cdp-weekdays{display:flex;flex-direction:row;flex-wrap:nowrap;padding:0 10px;margin-bottom:2px;direction:ltr !important;width:100%;box-sizing:border-box;}
+  .cdp-weekdays span{text-align:center;font-size:.65rem;font-weight:700;color:var(--muted);padding:5px 0;text-transform:uppercase;width:calc(100% / 7);flex-shrink:0;box-sizing:border-box;}
+  .cdp-days{padding:0 10px;direction:ltr !important;width:100%;box-sizing:border-box;}
+  .cdp-row{display:table-row;}
+  .cdp-days-table{display:table;width:100%;table-layout:fixed;border-collapse:collapse;direction:ltr !important;}
+  .cdp-day{display:table-cell;height:42px;text-align:center;vertical-align:middle;font-size:.88rem;font-weight:700;color:var(--text);border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;}
   .cdp-day:active{background:rgba(0,229,255,0.2);}
   .cdp-day.today{border:1.5px solid rgba(0,229,255,0.5);color:var(--cyan);}
   .cdp-day.selected{background:linear-gradient(135deg,#7c3aed,#00e5ff);color:#fff;border:none;}
   .cdp-day.empty{cursor:default;}
   .cdp-day.other-month{color:rgba(255,255,255,0.2);}
-  .cdp-actions{display:flex;gap:10px;padding:14px 16px 0;justify-content:flex-end;}
+  .cdp-actions{display:flex;gap:10px;padding:14px 16px 0;justify-content:flex-end;direction:ltr !important;}
   .cdp-cancel{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);padding:10px 22px;border-radius:12px;font-family:'Cairo',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;}
   .cdp-confirm{background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;color:#fff;padding:10px 28px;border-radius:12px;font-family:'Cairo',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;}
   .cdp-fake-input{background:var(--s2);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:13px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:700;width:100%;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .25s;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;white-space:nowrap;overflow:hidden;}
@@ -378,11 +380,11 @@
   .cdp-fake-input .cdp-ico{font-size:.9rem;flex-shrink:0;}
   .cdp-fake-input .cdp-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   /* Month/Year picker */
-  .cdp-my-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px 0;}
+  .cdp-my-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px 0;direction:ltr !important;}
   .cdp-my-btn{padding:10px 6px;border-radius:10px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;}
   .cdp-my-btn.selected{background:linear-gradient(135deg,var(--violet),var(--cyan));border-color:transparent;color:#fff;}
   .cdp-my-btn:active{opacity:.7;}
-  .cdp-yr-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;}
+  .cdp-yr-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;direction:ltr !important;}
   .cdp-yr-val{font-size:1.1rem;font-weight:800;color:var(--text);}
 </style>
 </head>
@@ -3811,6 +3813,9 @@ function openDatePicker(targetId, displayId){
   _cdp.viewMode = 'cal';
   document.getElementById('cdp-my-view').style.display = 'none';
   document.getElementById('cdp-cal-view').style.display = 'block';
+  // force LTR always regardless of document direction
+  const box = document.getElementById('cdp-box');
+  if(box){ box.setAttribute('dir','ltr'); box.style.direction='ltr'; }
   cdpRenderHeader();
   cdpRenderCal();
   document.getElementById('cdp-overlay').classList.add('open');
@@ -3838,28 +3843,58 @@ function cdpRenderHeader(){
 
 function cdpRenderCal(){
   document.getElementById('cdp-month-year-lbl').textContent = CDP_MONTHS[_cdp.month] + ' ' + _cdp.year;
+
+  // weekdays header — always fixed order Su..Sa
+  const wkEl = document.getElementById('cdp-weekdays-row');
+  if(wkEl){
+    wkEl.innerHTML = '';
+    ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => {
+      const s = document.createElement('span');
+      s.textContent = d;
+      wkEl.appendChild(s);
+    });
+  }
+
   const container = document.getElementById('cdp-days');
   container.innerHTML = '';
+
   const today = new Date();
   const firstDay = new Date(_cdp.year, _cdp.month, 1).getDay(); // 0=Sun
   const daysInMonth = new Date(_cdp.year, _cdp.month + 1, 0).getDate();
-  // empty cells
-  for(let i = 0; i < firstDay; i++){
-    const e = document.createElement('div');
-    e.className = 'cdp-day empty';
-    container.appendChild(e);
+
+  // build flat array: nulls for empty, then day numbers
+  const cells = [];
+  for(let i = 0; i < firstDay; i++) cells.push(null);
+  for(let d = 1; d <= daysInMonth; d++) cells.push(d);
+  // pad to full weeks
+  while(cells.length % 7 !== 0) cells.push(null);
+
+  // build using <table> so direction can never affect cell order
+  const table = document.createElement('table');
+  table.className = 'cdp-days-table';
+  table.setAttribute('dir','ltr');
+  table.style.cssText = 'direction:ltr!important;width:100%;table-layout:fixed;border-collapse:collapse;';
+
+  for(let r = 0; r < cells.length / 7; r++){
+    const tr = document.createElement('tr');
+    for(let c = 0; c < 7; c++){
+      const d = cells[r * 7 + c];
+      const td = document.createElement('td');
+      td.style.cssText = 'text-align:center;vertical-align:middle;height:42px;padding:0;';
+      if(d !== null){
+        td.textContent = d;
+        td.className = 'cdp-day';
+        const isToday = (d === today.getDate() && _cdp.month === today.getMonth() && _cdp.year === today.getFullYear());
+        const isSel   = _cdp.selected && (d === _cdp.selected.getDate() && _cdp.month === _cdp.selected.getMonth() && _cdp.year === _cdp.selected.getFullYear());
+        if(isSel)       td.classList.add('selected');
+        else if(isToday) td.classList.add('today');
+        td.addEventListener('click', (()=>{ const day=d; return ()=> cdpSelectDay(day); })());
+      }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
   }
-  for(let d = 1; d <= daysInMonth; d++){
-    const el = document.createElement('div');
-    el.className = 'cdp-day';
-    el.textContent = d;
-    const isToday = (d === today.getDate() && _cdp.month === today.getMonth() && _cdp.year === today.getFullYear());
-    const isSel   = _cdp.selected && (d === _cdp.selected.getDate() && _cdp.month === _cdp.selected.getMonth() && _cdp.year === _cdp.selected.getFullYear());
-    if(isSel)   el.classList.add('selected');
-    else if(isToday) el.classList.add('today');
-    el.addEventListener('click', ()=>{ cdpSelectDay(d); });
-    container.appendChild(el);
-  }
+  container.appendChild(table);
 }
 
 function cdpSelectDay(d){
@@ -3994,7 +4029,7 @@ function cdpInitDisplays(){
         <div class="cdp-month-year" id="cdp-month-year-lbl" onclick="cdpShowMonthPicker()">—</div>
         <button class="cdp-nav-btn" onclick="cdpNextMonth()">›</button>
       </div>
-      <div class="cdp-weekdays">
+      <div class="cdp-weekdays" id="cdp-weekdays-row" dir="ltr" style="direction:ltr;">
         <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
       </div>
       <div class="cdp-days" id="cdp-days"></div>
