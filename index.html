@@ -45,14 +45,35 @@
   window._fbSignUp  = (email, pass) => _fbAuth.createUserWithEmailAndPassword(email, pass);
   window._fbSignIn  = (email, pass) => _fbAuth.signInWithEmailAndPassword(email, pass);
   window._fbSignOut = () => _fbAuth.signOut();
-  window._fbSave    = async (uid, data) => {
+  window._fbCurrentUser = null;
+
+  // ── Profile: تفعيل + إعدادات + أماكن ──
+  window._fbSaveProfile = async (uid, data) => {
     await _fbDb.collection('users').doc(uid).set(data, { merge: true });
   };
-  window._fbLoad    = async (uid) => {
+  window._fbLoadProfile = async (uid) => {
     const snap = await _fbDb.collection('users').doc(uid).get();
     return snap.exists ? snap.data() : null;
   };
-  window._fbCurrentUser = null;
+
+  // ── Months: شيفتات كل شهر في document منفصل ──
+  // المسار: users/{uid}/months/{2026-03}
+  window._fbSaveMonth = async (uid, monthKey, data) => {
+    await _fbDb.collection('users').doc(uid)
+               .collection('months').doc(monthKey).set(data);
+  };
+  window._fbLoadMonth = async (uid, monthKey) => {
+    const snap = await _fbDb.collection('users').doc(uid)
+                             .collection('months').doc(monthKey).get();
+    return snap.exists ? snap.data() : null;
+  };
+  window._fbLoadAllMonths = async (uid) => {
+    const snap = await _fbDb.collection('users').doc(uid)
+                             .collection('months').get();
+    const result = {};
+    snap.forEach(doc => { result[doc.id] = doc.data(); });
+    return result;
+  };
 
   _fbAuth.onAuthStateChanged((user) => {
     window._fbCurrentUser = user;
@@ -926,6 +947,19 @@
       <div class="ch">
         <div class="ct">📊 <span id="lbl-stats-title">الإحصائيات</span></div>
       </div>
+
+      <!-- زرار تحميل كل التاريخ -->
+      <div id="load-history-bar" style="background:linear-gradient(135deg,rgba(0,229,255,0.07),rgba(124,58,237,0.07));border:1px solid rgba(0,229,255,0.15);border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-size:.78rem;font-weight:800;color:var(--cyan);" id="lbl-history-title">📂 عارض شيفتات الشهر الحالي والسابق بس</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:3px;" id="lbl-history-sub">اضغط عشان تحمّل كل السجل كامل</div>
+        </div>
+        <button onclick="_fbLoadFullHistory()" id="load-history-btn"
+          style="flex-shrink:0;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:10px;padding:8px 14px;color:#fff;font-family:Cairo,sans-serif;font-weight:800;font-size:.72rem;cursor:pointer;white-space:nowrap;">
+          ⬇️ تحميل الكل
+        </button>
+      </div>
+
       <!-- بطاقات رئيسية -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,229,255,0.04));border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:16px;text-align:center;">
@@ -3689,68 +3723,140 @@ async function fbLogout(){
 }
 
 // حفظ البيانات على Firestore
+// ── helper: يحول تاريخ لـ key شهري "2026-03" ──
+function _monthKey(dateStr){
+  if(!dateStr) return null;
+  return dateStr.substring(0, 7); // "2026-03-15" → "2026-03"
+}
+
+// ── تجميع الشيفتات حسب الشهر ──
+function _groupShiftsByMonth(){
+  const map = {};
+  shifts.forEach(s => {
+    const mk = _monthKey(s.date);
+    if(!mk) return;
+    if(!map[mk]) map[mk] = [];
+    map[mk].push(s);
+  });
+  return map;
+}
+
+// ── حفظ كل حاجة على Firebase ──
 async function _fbSyncSave(){
   try{
     if(!window._fbCurrentUser) return;
     const uid = window._fbCurrentUser.uid;
-    await window._fbSave(uid, {
-      // ── بيانات الشيفتات ──
+
+    // 1️⃣ حفظ الـ Profile (تفعيل + إعدادات + أماكن)
+    await window._fbSaveProfile(uid, {
       places:        JSON.stringify(places),
-      shifts:        JSON.stringify(shifts),
       placeTax:      JSON.stringify(placeTax),
       placeDiscount: JSON.stringify(placeDiscount),
-      // ── بيانات التفعيل ──
       activated:     localStorage.getItem('sj_activated')    || '',
       freemode:      localStorage.getItem('sj_freemode')     || '',
       act_code_h:    localStorage.getItem('sj_act_code_h')   || '',
       act_code_raw:  localStorage.getItem('sj_act_code_raw') || '',
       codes:         localStorage.getItem('sj_codes')        || '{}',
-      // ── إعدادات ──
       lang:          localStorage.getItem('sj_lang')         || 'ar',
       currency:      localStorage.getItem('sj_currency')     || '',
       updatedAt:     Date.now(),
     });
+
+    // 2️⃣ حفظ الشيفتات — كل شهر في document منفصل
+    const byMonth = _groupShiftsByMonth();
+    const saves = Object.entries(byMonth).map(([mk, mShifts]) =>
+      window._fbSaveMonth(uid, mk, { shifts: JSON.stringify(mShifts), updatedAt: Date.now() })
+    );
+    await Promise.all(saves);
+
   } catch(e){ console.log('Firebase sync error:', e); }
 }
 
-// تحميل البيانات من Firestore
+// ── تحميل الشهر الحالي والشهر السابق فقط عند فتح التطبيق ──
 async function _fbSyncLoad(){
   try{
     if(!window._fbCurrentUser) return false;
-    const uid  = window._fbCurrentUser.uid;
-    const data = await window._fbLoad(uid);
-    if(!data) return false;
+    const uid = window._fbCurrentUser.uid;
 
-    // ── استعادة بيانات الشيفتات ──
-    const p  = data.places        ? JSON.parse(data.places)        : [];
-    const s  = data.shifts        ? JSON.parse(data.shifts)        : [];
-    const pt = data.placeTax      ? JSON.parse(data.placeTax)      : {};
-    const pd = data.placeDiscount ? JSON.parse(data.placeDiscount) : {};
-    if(s.length >= shifts.length){
-      places = p; shifts = s; placeTax = pt; placeDiscount = pd;
-    }
+    // 1️⃣ حمّل الـ Profile
+    const profile = await window._fbLoadProfile(uid);
+    if(!profile) return false;
 
-    // ── استعادة بيانات التفعيل ──
-    if(data.activated === 'true'){
+    // استعادة الأماكن
+    const p  = profile.places        ? JSON.parse(profile.places)        : [];
+    const pt = profile.placeTax      ? JSON.parse(profile.placeTax)      : {};
+    const pd = profile.placeDiscount ? JSON.parse(profile.placeDiscount) : {};
+    if(p.length >= places.length){ places = p; placeTax = pt; placeDiscount = pd; }
+
+    // استعادة التفعيل
+    if(profile.activated === 'true'){
       isActivated = true; isFreeMode = false;
       localStorage.setItem('sj_activated', 'true');
       localStorage.removeItem('sj_freemode');
       _cacheSet('sj_activated','true');
-    } else if(data.freemode === 'true'){
+    } else if(profile.freemode === 'true'){
       isFreeMode = true;
       localStorage.setItem('sj_freemode', 'true');
       _cacheSet('sj_freemode','true');
     }
-    if(data.act_code_h)   { localStorage.setItem('sj_act_code_h',   data.act_code_h);   _cacheSet('sj_act_code_h',   data.act_code_h); }
-    if(data.act_code_raw) { localStorage.setItem('sj_act_code_raw', data.act_code_raw); _cacheSet('sj_act_code_raw', data.act_code_raw); }
-    if(data.codes && data.codes !== '{}') localStorage.setItem('sj_codes', data.codes);
+    if(profile.act_code_h)   { localStorage.setItem('sj_act_code_h',   profile.act_code_h);   _cacheSet('sj_act_code_h',   profile.act_code_h); }
+    if(profile.act_code_raw) { localStorage.setItem('sj_act_code_raw', profile.act_code_raw); _cacheSet('sj_act_code_raw', profile.act_code_raw); }
+    if(profile.codes && profile.codes !== '{}') localStorage.setItem('sj_codes', profile.codes);
+    if(profile.lang)     localStorage.setItem('sj_lang',     profile.lang);
+    if(profile.currency) localStorage.setItem('sj_currency', profile.currency);
 
-    // ── استعادة الإعدادات ──
-    if(data.lang)     localStorage.setItem('sj_lang',     data.lang);
-    if(data.currency) localStorage.setItem('sj_currency', data.currency);
+    // 2️⃣ حمّل الشهر الحالي والشهر السابق بس
+    const now   = new Date();
+    const curMk = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const prev  = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const prvMk = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
+
+    const [curData, prvData] = await Promise.all([
+      window._fbLoadMonth(uid, curMk),
+      window._fbLoadMonth(uid, prvMk),
+    ]);
+
+    // دمج الشيفتات من الشهرين
+    let cloudShifts = [];
+    if(curData && curData.shifts) cloudShifts = cloudShifts.concat(JSON.parse(curData.shifts));
+    if(prvData && prvData.shifts) cloudShifts = cloudShifts.concat(JSON.parse(prvData.shifts));
+
+    // لو في السحابة أكتر → استخدمها
+    if(cloudShifts.length >= shifts.length) shifts = cloudShifts;
 
     return true;
-  } catch(e){ return false; }
+  } catch(e){ console.log('_fbSyncLoad error:', e); return false; }
+}
+
+// ── تحميل كل التاريخ (للإحصائيات الكاملة عند الطلب) ──
+async function _fbLoadFullHistory(){
+  const btn = document.getElementById('load-history-btn');
+  const bar = document.getElementById('load-history-bar');
+  try{
+    if(!window._fbCurrentUser){ showToast('⚠️ سجل دخول الأول'); return; }
+    // loading state
+    if(btn){ btn.textContent = '⏳ جاري التحميل...'; btn.disabled = true; }
+    const uid = window._fbCurrentUser.uid;
+    const allMonths = await window._fbLoadAllMonths(uid);
+    let allShifts = [];
+    Object.values(allMonths).forEach(m => {
+      if(m.shifts) allShifts = allShifts.concat(JSON.parse(m.shifts));
+    });
+    // رتّب الشيفتات بالتاريخ
+    allShifts.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    if(allShifts.length > shifts.length){
+      shifts = allShifts;
+      renderShifts(); renderSummary(); renderByPlace(); renderStats();
+      showToast('✅ تم تحميل كل السجل — ' + allShifts.length + ' شيفت');
+    } else {
+      showToast('✅ البيانات محملة بالفعل');
+    }
+    // إخفاء الـ bar بعد التحميل
+    if(bar) bar.style.display = 'none';
+  } catch(e){
+    showToast('❌ فشل التحميل، حاول تاني');
+    if(btn){ btn.textContent = '⬇️ تحميل الكل'; btn.disabled = false; }
+  }
 }
 
 // override save() عشان يحفظ على Firestore كمان
@@ -3761,24 +3867,20 @@ window.save = async function(){
 };
 save = window.save;
 
-// ── نسخ احتياطي تلقائي كل 30 دقيقة على Firebase ──
+// ── نسخ احتياطي تلقائي كل 30 دقيقة ──
 setInterval(()=>{ if(window._fbCurrentUser) _fbSyncSave(); }, 30 * 60 * 1000);
 
 // ── Firebase ready callback ──
 window._onFirebaseReady = async function(user){
   if(user){
     document.getElementById('fb-auth-screen').style.display = 'none';
-    // حمّل من Firebase
     const loaded = await _fbSyncLoad();
-    // أعد تشغيل checkActivation بعد استعادة بيانات التفعيل
     checkActivation();
     if(loaded){
       renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
       renderStats();
     }
-    // أضف زر logout في الإعدادات
     _injectLogoutBtn(user.email);
-    // حفظ فوري على Firebase عشان يضمن البيانات المحلية متزامنة
     setTimeout(_fbSyncSave, 2000);
   } else {
     document.getElementById('fb-auth-screen').style.display = 'flex';
