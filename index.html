@@ -2752,6 +2752,7 @@ const T = {
     date_col: 'التاريخ', details_col: 'التفاصيل', base_col: 'الأساسي',
     extra_col: 'الإضافي', total_col: 'الإجمالي', tax_row: 'الضريبة', net_col: 'صافي',
     pound: 'ج', period_start: 'البداية', period_end: 'النهاية',
+    logged_in_as: 'مسجل كـ', logout_btn: '🚪 تسجيل خروج',
   },
   en: {
     subtitle: 'Track your work hours & earnings everywhere',
@@ -2784,6 +2785,7 @@ const T = {
     date_col: 'Date', details_col: 'Details', base_col: 'Base',
     extra_col: 'Extra', total_col: 'Total', tax_row: 'Tax', net_col: 'Net',
     pound: 'EGP', period_start: 'Start', period_end: 'End',
+    logged_in_as: 'Logged in as', logout_btn: '🚪 Sign Out',
   }
 };
 
@@ -3713,18 +3715,7 @@ async function _fbSyncLoad(){
     // لو في السحابة أكتر → استخدمها
     if(cloudShifts.length >= shifts.length) shifts = cloudShifts;
 
-    // ── لو البيانات المحلية فارغة أو أقل → حمّل كل التاريخ تلقائياً ──
-    if(shifts.length === 0 || cloudShifts.length < 1){
-      try{
-        const allMonths = await window._fbLoadAllMonths(uid);
-        let allShifts = [];
-        Object.values(allMonths).forEach(m => {
-          if(m.shifts) allShifts = allShifts.concat(JSON.parse(m.shifts));
-        });
-        allShifts.sort((a,b) => (b.date||'').localeCompare(a.date||''));
-        if(allShifts.length > shifts.length) shifts = allShifts;
-      } catch(e){ console.log('full history load error:', e); }
-    }
+
 
     return true;
   } catch(e){ console.log('_fbSyncLoad error:', e); return false; }
@@ -3798,11 +3789,11 @@ function _injectLogoutBtn(email){
   div.style.cssText = 'margin-top:14px;padding-top:14px;border-top:1px solid var(--border);';
   div.innerHTML = `
     <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;text-align:center;">
-      ☁️ مسجل كـ: <span style="color:var(--cyan);font-weight:700;">${email}</span>
+      ☁️ ${t('logged_in_as') || (currentLang==='en' ? 'Logged in as' : 'مسجل كـ')}: <span style="color:var(--cyan);font-weight:700;">${email}</span>
     </div>
     <button id="fb-logout-btn" onclick="fbLogout()"
       style="width:100%;padding:12px;background:rgba(255,23,68,0.1);border:1px solid rgba(255,23,68,0.3);border-radius:12px;color:var(--red);font-family:Cairo,sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;">
-      🚪 تسجيل خروج
+      🚪 ${t('logout_btn') || (currentLang==='en' ? 'Sign Out' : 'تسجيل خروج')}
     </button>`;
   parent.appendChild(div);
 }
