@@ -9,7 +9,7 @@
   document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
 })();
 </script>
-<meta name="build-version" content="202603010007">
+<meta name="build-version" content="202603070001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3180,10 +3180,32 @@ async function _idbGetAll(){
 const _CACHE_NAME = 'shiftaty-persist-v1';
 const _CACHE_META_URL = 'https://shiftaty.app/__data__/';
 
+// ── مساعد: بعت رسالة للـ Service Worker وانتظر الرد ──
+function _swSend(type, payload){
+  return new Promise((resolve) => {
+    if(!navigator.serviceWorker || !navigator.serviceWorker.controller){
+      resolve(null); return;
+    }
+    const channel = new MessageChannel();
+    channel.port1.onmessage = (e) => resolve(e.data);
+    navigator.serviceWorker.controller.postMessage({ type, payload }, [channel.port2]);
+    // timeout بعد 2 ثانية لو SW ما ردش
+    setTimeout(() => resolve(null), 2000);
+  });
+}
+
 async function _cacheSet(key, value){
+  const body = typeof value === 'string' ? value : JSON.stringify(value);
+  // الطريقة الأولى: عبر SW مباشرة (أقوى — لا يُمسح بـ clear browsing data)
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      const res = await _swSend('SAVE_DATA', { [key]: body });
+      if(res && res.ok) return;
+    }
+  } catch(e){}
+  // الطريقة الثانية: مباشرة على caches (fallback)
   try{
     const cache = await caches.open(_CACHE_NAME);
-    const body  = typeof value === 'string' ? value : JSON.stringify(value);
     await cache.put(_CACHE_META_URL + key, new Response(body, {
       headers: { 'Content-Type': 'application/json' }
     }));
@@ -3191,6 +3213,14 @@ async function _cacheSet(key, value){
 }
 
 async function _cacheGet(key){
+  // الطريقة الأولى: من SW
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      const res = await _swSend('GET_ALL_DATA', null);
+      if(res && res.ok && res.data && res.data[key] !== undefined) return res.data[key];
+    }
+  } catch(e){}
+  // الطريقة الثانية: مباشرة
   try{
     const cache = await caches.open(_CACHE_NAME);
     const resp  = await cache.match(_CACHE_META_URL + key);
@@ -3201,16 +3231,38 @@ async function _cacheGet(key){
 
 async function _cacheSetAll(obj){
   try{
+    // حفظ دفعة واحدة عبر SW (أسرع)
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      const payload = {};
+      for(const [k,v] of Object.entries(obj)){
+        payload[k] = typeof v === 'string' ? v : JSON.stringify(v);
+      }
+      const res = await _swSend('SAVE_DATA', payload);
+      if(res && res.ok) return;
+    }
+  } catch(e){}
+  // fallback
+  try{
     await Promise.all(Object.entries(obj).map(([k,v]) => _cacheSet(k, v)));
   } catch(e){}
 }
 
 async function _cacheGetAll(){
+  // الطريقة الأولى: من SW مباشرة (كل البيانات دفعة واحدة)
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      const res = await _swSend('GET_ALL_DATA', null);
+      if(res && res.ok && res.data && Object.keys(res.data).length > 0) return res.data;
+    }
+  } catch(e){}
+  // الطريقة الثانية: fallback مباشر
   try{
     const keys = ['sj_places','sj_shifts','sj_ptax','sj_pdisc',
                   'sj_activated','sj_freemode','sj_codes',
-                  'sj_device_id','sj_lock_phone_h','sj_lang'];
-    const vals = await Promise.all(keys.map(k => _cacheGet(k)));
+                  'sj_device_id','sj_lock_phone_h','sj_lang',
+                  'sj_act_code_h','sj_act_code_raw','sj_lock_phone_h'];
+    const cache = await caches.open(_CACHE_NAME);
+    const vals  = await Promise.all(keys.map(k => cache.match(_CACHE_META_URL + k).then(r => r ? r.text() : null)));
     const result = {};
     keys.forEach((k,i) => { if(vals[i] !== null) result[k] = vals[i]; });
     return result;
@@ -3618,29 +3670,54 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     applyLockLang(); // تأكد إن شاشة القفل عربي من الأول
   }
 
-  // Register SW — ملف sw.js منفصل عشان الـ offline يشتغل صح
+  // Register SW — حماية من المسح + offline
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').then(reg => {
-      // تحقق من وجود تحديث كل 60 ثانية
+    navigator.serviceWorker.register('./sw.js').then(async reg => {
       setInterval(() => reg.update(), 60000);
       reg.addEventListener('updatefound', () => {
         const newSW = reg.installing;
         newSW.addEventListener('statechange', () => {
           if(newSW.state === 'installed' && navigator.serviceWorker.controller){
-            // تحديث تلقائي بس لو المستخدم مش مشترك
             const activated = localStorage.getItem('sj_activated') === 'true';
             const freeMode  = localStorage.getItem('sj_freemode') === 'true';
-            if(!activated && !freeMode){
-              window.location.reload();
-            } else {
-              console.log('تحديث جاهز — سيُطبق عند إعادة الفتح');
-            }
+            if(!activated && !freeMode) window.location.reload();
           }
         });
       });
+
+      // ── Sync فوري للبيانات في الـ SW عند كل تشغيل ──
+      const _syncToSW = async () => {
+        try{
+          if(!navigator.serviceWorker.controller) return;
+          await _swSend('SAVE_DATA', {
+            sj_places:        JSON.stringify(places),
+            sj_shifts:        JSON.stringify(shifts),
+            sj_ptax:          JSON.stringify(placeTax),
+            sj_pdisc:         JSON.stringify(placeDiscount),
+            sj_activated:     localStorage.getItem('sj_activated')    || '',
+            sj_freemode:      localStorage.getItem('sj_freemode')     || '',
+            sj_codes:         localStorage.getItem('sj_codes')        || '{}',
+            sj_device_id:     localStorage.getItem('sj_device_id')    || '',
+            sj_lock_phone_h:  localStorage.getItem('sj_lock_phone_h') || '',
+            sj_lang:          localStorage.getItem('sj_lang')         || 'ar',
+            sj_act_code_h:    localStorage.getItem('sj_act_code_h')   || '',
+            sj_act_code_raw:  localStorage.getItem('sj_act_code_raw') || '',
+          });
+        } catch(e){}
+      };
+
+      if(navigator.serviceWorker.controller){
+        setTimeout(_syncToSW, 800);
+      }
+      if(reg.installing || reg.waiting){
+        const sw = reg.installing || reg.waiting;
+        sw.addEventListener('statechange', () => {
+          if(sw.state === 'activated') setTimeout(_syncToSW, 300);
+        });
+      }
+
     }).catch(e => console.log('SW error:', e));
 
-    // تحديث تلقائي بس لو مش مشترك
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       const activated = localStorage.getItem('sj_activated') === 'true';
       const freeMode  = localStorage.getItem('sj_freemode') === 'true';
