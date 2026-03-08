@@ -1147,8 +1147,9 @@
   <div class="act-box">
     <div class="act-icon">⚡</div>
     <div class="act-title" style="font-family:Arial Black,Arial;letter-spacing:2px;">SHIFTATY</div>
-    <div class="act-price-badge" id="lbl-act-price">100 جنيه فقط</div>
-    <div class="act-sub" id="lbl-act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج): أماكن غير محدودة</div>
+    <div class="act-price-badge" id="lbl-act-price" style="display:flex;align-items:center;justify-content:center;gap:8px;"><span style="text-decoration:line-through;opacity:0.6;font-size:.85rem;">200 جنيه</span> <span>100 جنيه فقط 🔥</span></div>
+    <div style="text-align:center;font-size:.72rem;color:var(--orange);font-weight:800;margin-bottom:6px;">⏳ عرض لفترة محدودة</div>
+    <div class="act-sub" id="lbl-act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج بدل 200ج): أماكن غير محدودة</div>
 
     <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:16px;padding:14px 16px;margin:12px 0 4px;text-align:right;">
       <div style="font-size:.78rem;font-weight:800;color:var(--cyan);margin-bottom:10px;text-align:center;letter-spacing:.5px;">💳 متاح الدفع بـ</div>
@@ -3142,9 +3143,9 @@ function applyLang(){
     :'1️⃣ افتح التطبيق في <strong style="color:var(--cyan);">Safari</strong> (مش Chrome)<br>2️⃣ اضغط <strong style="color:var(--cyan);">زرار المشاركة ⬆️</strong> في أسفل الشاشة<br>3️⃣ اختر <strong style="color:var(--cyan);">"إضافة إلى الشاشة الرئيسية"</strong><br>4️⃣ اضغط <strong style="color:var(--cyan);">"إضافة"</strong> ✅';
 
   // ── ACTIVATION OVERLAY ──
-  s('lbl-act-price',    isEn?'100 EGP only'                                           :'100 جنيه فقط');
+  s('lbl-act-price', isEn ? '100 EGP only 🔥 (was 200)' : '');  // handled in HTML
   const actSub=document.getElementById('lbl-act-sub');
-  if(actSub)actSub.innerHTML=isEn?'✅ Free: 1 place + shifts + full summary<br>⭐ Paid (100 EGP): Unlimited places':'✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج): أماكن غير محدودة';
+  if(actSub)actSub.innerHTML=isEn?'✅ Free: 1 place + shifts + full summary<br>⭐ Paid (100 EGP instead of 200): Unlimited places':'✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج بدل 200ج): أماكن غير محدودة';
   s('lbl-act-wa',       isEn?'💬 Contact on WhatsApp to upgrade'                     :'💬 تواصل على واتساب للدفع والترقية');
   s('lbl-act-free',     isEn?'🆓 Use Free Version'                                   :'🆓 استخدام النسخة المجانية');
   s('lbl-act-pay-title',isEn?'💳 To upgrade — pay 100 EGP (one time) to:'            :'💳 للترقية — ادفع 100 جنيه (مرة واحدة فقط) على:');
