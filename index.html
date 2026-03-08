@@ -1604,6 +1604,16 @@ async function _loadData(){
   placeTax      = _best5Obj( _safeParse(cache_pt,'{}'), _safeParse(idb_pt,'{}'), _safeParse(enc_pt,'{}'), _safeParse(plain_pt,'{}'), _safeParse(leg_pt,'{}') );
   placeDiscount = _best5Obj( _safeParse(cache_pd,'{}'), _safeParse(idb_pd,'{}'), _safeParse(enc_pd,'{}'), _safeParse(plain_pd,'{}'), _safeParse(leg_pd,'{}') );
 
+  // تأكد إن كل مكان عنده لون — الأماكن القديمة مالهاش لون
+  (function assignMissingColors(){
+    const _PC = ['#00e5ff','#7c3aed','#00e676','#ff6d00','#ff1744','#ffd600','#0288d1','#e040fb','#00bcd4','#ff5722'];
+    let changed = false;
+    places.forEach((p, i) => {
+      if(!p.color){ p.color = _PC[i % _PC.length]; changed = true; }
+    });
+    if(changed) save();
+  })();
+
   // بعد التحميل احفظ في كل الأماكن فورًا كحماية
   try{
     localStorage.setItem('sj_places_plain', JSON.stringify(places));
@@ -1870,7 +1880,10 @@ function addPlace(){
   const customName=type==='custom'?(document.getElementById('p-custom-name').value.trim()||(currentLang==='en'?'Other':'آخر')):'';
   const price=parseFloat(document.getElementById('p-price').value)||0;
   if(!name){showToast(currentLang==='en'?'⚠️ Enter place name':'⚠️ أدخل اسم المكان');return;}
-  places.push({id:Date.now(),name,type,customName,price});
+  const _PLACE_COLORS = ['#00e5ff','#7c3aed','#00e676','#ff6d00','#ff1744','#ffd600','#0288d1','#e040fb','#00bcd4','#ff5722'];
+  const usedColors = places.map(p=>p.color).filter(Boolean);
+  const availableColor = _PLACE_COLORS.find(c=>!usedColors.includes(c)) || _PLACE_COLORS[places.length % _PLACE_COLORS.length];
+  places.push({id:Date.now(),name,type,customName,price,color:availableColor});
   _markIOSAction(); // iOS Fix: prevent false lock after add
   save();
   document.getElementById('p-name').value='';
@@ -1950,17 +1963,21 @@ function renderPlaces(){
     return;
   }
   if(secT){ secT.style.display='block'; secT.textContent = isEn?'Registered Workplaces':'أماكن العمل المسجلة'; }
-  el.innerHTML=places.map(p=>`
-    <div class="place-item">
+  el.innerHTML=places.map(p=>{
+    const pc = p.color||'#00e5ff';
+    const pcAlpha = pc+'33';
+    return `
+    <div class="place-item" style="border-color:${pc}33;border-right:3px solid ${pc};">
       <div class="pi-l">
-        <div class="pi-ico">🏥</div>
-        <div><div class="pi-name">${p.name}</div><div class="pi-meta">${getPlaceTypeLbl(p)} • ${p.price.toLocaleString()} ${getCurrency()}</div></div>
+        <div class="pi-ico" style="background:linear-gradient(135deg,${pc}55,${pc}22);border:1px solid ${pc}55;">🏥</div>
+        <div><div class="pi-name" style="color:${pc};">${p.name}</div><div class="pi-meta">${getPlaceTypeLbl(p)} • ${p.price.toLocaleString()} ${getCurrency()}</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button class="btn btn-out" style="padding:7px 13px;font-size:.78rem;border-color:rgba(0,229,255,0.3);color:var(--cyan);" onclick="openEditModal(${p.id})">✏️ ${isEn?'Edit':'تعديل'}</button>
+        <button class="btn btn-out" style="padding:7px 13px;font-size:.78rem;border-color:${pc}55;color:${pc};" onclick="openEditModal(${p.id})">✏️ ${isEn?'Edit':'تعديل'}</button>
         <button class="btn btn-red" onclick="deletePlace(${p.id})">🗑️</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── LOG ──
@@ -2133,6 +2150,8 @@ function renderShifts(){
   const PT={hour: isEn?'hr':'ساعة', shift: isEn?'shift':'شيفت', case: isEn?'case':'حالة', custom: isEn?'other':'آخر'};
   const getShiftTypeLbl = s => { if(s.payType==='custom'){ if(s.customUnit) return s.customUnit; const p=places.find(x=>x.id==s.placeId); return p&&p.customName?p.customName:(isEn?'other':'آخر'); } return PT[s.payType]||''; };
   el.innerHTML=list.map(s=>{
+    const placeObj = places.find(x=>x.id==s.placeId);
+    const pc = (placeObj&&placeObj.color)||'#00e5ff';
     const tags=[];
     const mkTag = (cls, icon, count, unit, price, cur) =>
       `<span class="tag ${cls}" style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap;">` +
@@ -2148,10 +2167,10 @@ function renderShifts(){
     if(s.exOC)  tags.push(mkTag('ty','🔷',  s.exOC,  s.exOtherName||(isEn?'Other Cases':'حالات أخرى'),  s.exOP?(s.exOP).toLocaleString():'', s.exOP?getCurrency():''));
     if(s.customExtras) s.customExtras.forEach(r=>{ if(r.count) tags.push(`<span class="tag ty">➕ ${r.count} ${r.name}</span>`); });
     if(s.note) tags.push(`<span class="tag ty">💬 ${s.note}</span>`);
-    return `<div class="shift-item">
+    return `<div class="shift-item" style="border-right:3px solid ${pc};border-color:${pc}22;">
       <div class="si-row1">
         <div>
-          <div class="si-place">🏥 ${s.placeName}</div>
+          <div class="si-place" style="color:${pc};">🏥 ${s.placeName}</div>
           <div class="si-date">📅 ${fmtDate(s.date)}</div>
         </div>
         <div class="si-actions">
