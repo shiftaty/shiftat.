@@ -1604,13 +1604,19 @@ async function _loadData(){
   placeDiscount = _best5Obj( _safeParse(cache_pd,'{}'), _safeParse(idb_pd,'{}'), _safeParse(enc_pd,'{}'), _safeParse(plain_pd,'{}'), _safeParse(leg_pd,'{}') );
 
   // تأكد إن كل مكان عنده لون — الأماكن القديمة مالهاش لون
-  (function assignMissingColors(){
+  (function assignUniqueColors(){
     const _PC = ['#00e5ff','#7c3aed','#00e676','#ff6d00','#ff1744','#ffd600','#0288d1','#e040fb','#00bcd4','#ff5722'];
-    let changed = false;
-    places.forEach((p, i) => {
-      if(!p.color){ p.color = _PC[i % _PC.length]; changed = true; }
-    });
-    if(changed) save();
+    const allColors = places.map(p=>p.color).filter(Boolean);
+    const uniqueCount = new Set(allColors).size;
+    const needReassign = places.length > 1 && (uniqueCount <= 1 || allColors.length < places.length);
+    if(needReassign){
+      places.forEach((p, i) => { p.color = _PC[i % _PC.length]; });
+      save();
+    } else {
+      let changed = false;
+      places.forEach((p, i) => { if(!p.color){ p.color = _PC[i % _PC.length]; changed = true; } });
+      if(changed) save();
+    }
   })();
 
   // بعد التحميل احفظ في كل الأماكن فورًا كحماية
