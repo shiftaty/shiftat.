@@ -3575,6 +3575,25 @@ async function fbSubmit(){
   errEl.textContent = '';
   if(!email || !pass){ errEl.textContent = '❌ أدخل الإيميل والباسورد'; return; }
   if(pass.length < 6){ errEl.textContent = '❌ الباسورد على الأقل 6 أحرف'; return; }
+
+  // ── Offline Login: لو مفيش نت وعنده حساب محفوظ ──
+  if(_fbTab === 'login' && !navigator.onLine){
+    const offlineUid   = localStorage.getItem('sj_offline_uid');
+    const offlineEmail = localStorage.getItem('sj_offline_email');
+    if(offlineUid && offlineEmail && offlineEmail.toLowerCase() === email.toLowerCase()){
+      // ✅ نفس الإيميل المحفوظ — ندخله أوفلاين
+      window._fbCurrentUser = { uid: offlineUid, email: offlineEmail, _isOffline: true };
+      if(typeof window._onFirebaseReady === 'function'){
+        window._onFirebaseReady(window._fbCurrentUser);
+      }
+      return;
+    } else {
+      // ❌ أوفلاين وإيميل مختلف أو مفيش حساب محفوظ
+      errEl.textContent = '❌ مفيش إنترنت — سجل دخولك مرة واحدة وهو أونلاين الأول';
+      return;
+    }
+  }
+
   loadEl.style.display = 'block';
   document.getElementById('fb-submit-btn').disabled = true;
   try{
