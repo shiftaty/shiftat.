@@ -3751,8 +3751,20 @@ async function _fbSyncLoad(){
     if(curData && curData.shifts) cloudShifts = cloudShifts.concat(JSON.parse(curData.shifts));
     if(prvData && prvData.shifts) cloudShifts = cloudShifts.concat(JSON.parse(prvData.shifts));
 
-    // لو في السحابة أكتر → استخدمها
-    if(cloudShifts.length >= shifts.length) shifts = cloudShifts;
+    // مقارنة ذكية: بالأحدث مش بالعدد بس
+    if(cloudShifts.length > 0){
+      if(shifts.length === 0){
+        shifts = cloudShifts;
+      } else {
+        const localLatest = shifts.reduce((max,s)=> s.id>max ? s.id : max, 0);
+        const cloudLatest = cloudShifts.reduce((max,s)=> s.id>max ? s.id : max, 0);
+        if(cloudLatest > localLatest){
+          shifts = cloudShifts;
+        } else if(cloudLatest === localLatest && cloudShifts.length > shifts.length){
+          shifts = cloudShifts;
+        }
+      }
+    }
 
 
 
