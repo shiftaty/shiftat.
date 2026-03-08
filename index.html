@@ -76,9 +76,27 @@
   };
 
   _fbAuth.onAuthStateChanged((user) => {
-    window._fbCurrentUser = user;
+    if(user){
+      // ✅ أونلاين — احفظ بيانات المستخدم محلياً عشان الأوفلاين
+      window._fbCurrentUser = user;
+      localStorage.setItem('sj_offline_uid',   user.uid);
+      localStorage.setItem('sj_offline_email', user.email);
+    } else {
+      // مفيش user من Firebase — ممكن أوفلاين أو مش مسجل
+      const offlineUid   = localStorage.getItem('sj_offline_uid');
+      const offlineEmail = localStorage.getItem('sj_offline_email');
+      if(offlineUid && !navigator.onLine){
+        // ✅ أوفلاين + سبق دخل → استخدم البيانات المحلية
+        window._fbCurrentUser = { uid: offlineUid, email: offlineEmail, _isOffline: true };
+      } else {
+        // ❌ مش مسجل أو أونلاين وعمل logout فعلاً
+        window._fbCurrentUser = null;
+        localStorage.removeItem('sj_offline_uid');
+        localStorage.removeItem('sj_offline_email');
+      }
+    }
     if(typeof window._onFirebaseReady === 'function'){
-      window._onFirebaseReady(user);
+      window._onFirebaseReady(window._fbCurrentUser);
     }
   });
 </script>
@@ -3613,6 +3631,7 @@ function _groupShiftsByMonth(){
 async function _fbSyncSave(){
   try{
     if(!window._fbCurrentUser) return;
+    if(window._fbCurrentUser._isOffline || !navigator.onLine) return; // مش نرفع أوفلاين
     const uid = window._fbCurrentUser.uid;
 
     // 1️⃣ حفظ الـ Profile (تفعيل + إعدادات + أماكن)
@@ -3758,14 +3777,34 @@ setInterval(()=>{ if(window._fbCurrentUser) _fbSyncSave(); }, 30 * 60 * 1000);
 window._onFirebaseReady = async function(user){
   if(user){
     document.getElementById('fb-auth-screen').style.display = 'none';
-    const loaded = await _fbSyncLoad();
-    checkActivation();
-    if(loaded){
+    if(user._isOffline){
+      // ✅ أوفلاين — استخدم البيانات المحلية مباشرة بدون Firebase
+      checkActivation();
       renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
       renderStats();
+      _injectLogoutBtn(user.email);
+      showToast('📵 أوفلاين — بياناتك المحلية محملة، هيتزامن لما يرجع النت');
+      // لما يرجع النت، زامن تلقائياً
+      window.addEventListener('online', async function _syncOnReconnect(){
+        window.removeEventListener('online', _syncOnReconnect);
+        showToast('🌐 رجع النت — جاري المزامنة...');
+        await _fbSyncSave();
+        await _fbSyncLoad();
+        renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
+        renderStats();
+        showToast('✅ تمت المزامنة بنجاح');
+      });
+    } else {
+      // ✅ أونلاين — اشتغل عادي
+      const loaded = await _fbSyncLoad();
+      checkActivation();
+      if(loaded){
+        renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
+        renderStats();
+      }
+      _injectLogoutBtn(user.email);
+      setTimeout(_fbSyncSave, 2000);
     }
-    _injectLogoutBtn(user.email);
-    setTimeout(_fbSyncSave, 2000);
   } else {
     document.getElementById('fb-auth-screen').style.display = 'flex';
   }
