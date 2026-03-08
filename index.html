@@ -3716,7 +3716,22 @@ async function _fbLoadFullHistory(){
     // رتّب الشيفتات بالتاريخ
     allShifts.sort((a,b) => (b.date||'').localeCompare(a.date||''));
     window._fullHistoryLoaded = true;
-    if(allShifts.length > shifts.length){
+    // مقارنة الشيفتات بالمحتوى مش بالعدد بس
+    function isShiftsUpdated(oldShifts, newShifts){
+      if(oldShifts.length !== newShifts.length) return true;
+      const sortById = arr => [...arr].sort((a,b) => (a.id||0) - (b.id||0));
+      const sortedOld = sortById(oldShifts);
+      const sortedNew = sortById(newShifts);
+      for(let i = 0; i < sortedOld.length; i++){
+        if(sortedOld[i].id !== sortedNew[i].id ||
+           sortedOld[i].total !== sortedNew[i].total ||
+           sortedOld[i].date !== sortedNew[i].date){
+          return true;
+        }
+      }
+      return false;
+    }
+    if(isShiftsUpdated(shifts, allShifts)){
       shifts = allShifts;
       renderShifts(); renderSummary(); renderByPlace(); renderStats();
     }
