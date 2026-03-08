@@ -949,7 +949,6 @@
     </div>
 
     <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:6px;">
-      <button onclick="changeLockPhone()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:7px 18px;color:var(--muted);font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;" id="lbl-change-lock">🔐 تغيير رقم القفل</button>
       <a href="https://wa.me/201030391975?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%99%8F" target="_blank" style="background:transparent;border:1px solid rgba(37,211,102,0.3);border-radius:20px;padding:7px 18px;color:#25d366;font-family:Cairo,sans-serif;font-size:.72rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" id="lbl-contact-us">💬 تواصل معنا</a>
     </div>
     <div style="margin-bottom:16px;">
@@ -1881,9 +1880,9 @@ function addPlace(){
   const price=parseFloat(document.getElementById('p-price').value)||0;
   if(!name){showToast(currentLang==='en'?'⚠️ Enter place name':'⚠️ أدخل اسم المكان');return;}
   const _PLACE_COLORS = ['#00e5ff','#7c3aed','#00e676','#ff6d00','#ff1744','#ffd600','#0288d1','#e040fb','#00bcd4','#ff5722'];
-  const usedColors = places.map(p=>p.color).filter(Boolean);
-  const availableColor = _PLACE_COLORS.find(c=>!usedColors.includes(c)) || _PLACE_COLORS[places.length % _PLACE_COLORS.length];
-  places.push({id:Date.now(),name,type,customName,price,color:availableColor});
+  const _usedColors = places.map(p=>p.color).filter(Boolean);
+  const _availColor = _PLACE_COLORS.find(c=>!_usedColors.includes(c)) || _PLACE_COLORS[places.length % _PLACE_COLORS.length];
+  places.push({id:Date.now(),name,type,customName,price,color:_availColor});
   _markIOSAction(); // iOS Fix: prevent false lock after add
   save();
   document.getElementById('p-name').value='';
@@ -1965,9 +1964,8 @@ function renderPlaces(){
   if(secT){ secT.style.display='block'; secT.textContent = isEn?'Registered Workplaces':'أماكن العمل المسجلة'; }
   el.innerHTML=places.map(p=>{
     const pc = p.color||'#00e5ff';
-    const pcAlpha = pc+'33';
     return `
-    <div class="place-item" style="border-color:${pc}33;border-right:3px solid ${pc};">
+    <div class="place-item" style="border-right:3px solid ${pc};border-color:${pc}33;">
       <div class="pi-l">
         <div class="pi-ico" style="background:linear-gradient(135deg,${pc}55,${pc}22);border:1px solid ${pc}55;">🏥</div>
         <div><div class="pi-name" style="color:${pc};">${p.name}</div><div class="pi-meta">${getPlaceTypeLbl(p)} • ${p.price.toLocaleString()} ${getCurrency()}</div></div>
