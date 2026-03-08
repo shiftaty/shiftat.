@@ -948,16 +948,9 @@
         <div class="ct">📊 <span id="lbl-stats-title">الإحصائيات</span></div>
       </div>
 
-      <!-- زرار تحميل كل التاريخ -->
-      <div id="load-history-bar" style="background:linear-gradient(135deg,rgba(0,229,255,0.07),rgba(124,58,237,0.07));border:1px solid rgba(0,229,255,0.15);border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div>
-          <div style="font-size:.78rem;font-weight:800;color:var(--cyan);" id="lbl-history-title">📂 عارض شيفتات الشهر الحالي والسابق بس</div>
-          <div style="font-size:.68rem;color:var(--muted);margin-top:3px;" id="lbl-history-sub">اضغط عشان تحمّل كل السجل كامل</div>
-        </div>
-        <button onclick="_fbLoadFullHistory()" id="load-history-btn"
-          style="flex-shrink:0;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:10px;padding:8px 14px;color:#fff;font-family:Cairo,sans-serif;font-weight:800;font-size:.72rem;cursor:pointer;white-space:nowrap;">
-          ⬇️ تحميل الكل
-        </button>
+      <!-- مؤشر التحميل التلقائي -->
+      <div id="load-history-bar" style="background:linear-gradient(135deg,rgba(0,229,255,0.07),rgba(124,58,237,0.07));border:1px solid rgba(0,229,255,0.15);border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <div style="font-size:.78rem;font-weight:800;color:var(--cyan);" id="lbl-history-title">⏳ جاري تحميل كل السجل...</div>
       </div>
 
       <!-- بطاقات رئيسية -->
@@ -1840,7 +1833,7 @@ function tab(name){
   if(name==='log'){populateSels();resetLog();}
   if(name==='shifts'){populateSels();renderShifts();}
   if(name==='summary'){renderSummary();loadCurrency();}
-  if(name==='stats'){renderStats();}
+  if(name==='stats'){ renderStats(); if(!window._fullHistoryLoaded) _fbLoadFullHistory(); }
   window.scrollTo({top:0,behavior:'smooth'});
   // منع scroll للأعلى في URL
   if(history.pushState) history.pushState(null, null, window.location.pathname);
@@ -3705,14 +3698,15 @@ async function _fbSyncLoad(){
   } catch(e){ console.log('_fbSyncLoad error:', e); return false; }
 }
 
-// ── تحميل كل التاريخ (للإحصائيات الكاملة عند الطلب) ──
+// ── تحميل كل التاريخ تلقائياً عند فتح الإحصائيات ──
 async function _fbLoadFullHistory(){
-  const btn = document.getElementById('load-history-btn');
   const bar = document.getElementById('load-history-bar');
+  const title = document.getElementById('lbl-history-title');
   try{
-    if(!window._fbCurrentUser){ showToast('⚠️ سجل دخول الأول'); return; }
-    // loading state
-    if(btn){ btn.textContent = '⏳ جاري التحميل...'; btn.disabled = true; }
+    if(!window._fbCurrentUser){ if(bar) bar.style.display='none'; return; }
+    // إظهار مؤشر التحميل
+    if(bar) bar.style.display='flex';
+    if(title) title.textContent = '⏳ جاري تحميل كل السجل...';
     const uid = window._fbCurrentUser.uid;
     const allMonths = await window._fbLoadAllMonths(uid);
     let allShifts = [];
@@ -3721,18 +3715,16 @@ async function _fbLoadFullHistory(){
     });
     // رتّب الشيفتات بالتاريخ
     allShifts.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    window._fullHistoryLoaded = true;
     if(allShifts.length > shifts.length){
       shifts = allShifts;
       renderShifts(); renderSummary(); renderByPlace(); renderStats();
-      showToast('✅ تم تحميل كل السجل — ' + allShifts.length + ' شيفت');
-    } else {
-      showToast('✅ البيانات محملة بالفعل');
     }
     // إخفاء الـ bar بعد التحميل
     if(bar) bar.style.display = 'none';
   } catch(e){
-    showToast('❌ فشل التحميل، حاول تاني');
-    if(btn){ btn.textContent = '⬇️ تحميل الكل'; btn.disabled = false; }
+    if(bar) bar.style.display = 'none';
+    console.log('_fbLoadFullHistory error:', e);
   }
 }
 
