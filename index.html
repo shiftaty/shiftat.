@@ -75,29 +75,94 @@
     return result;
   };
 
+  // ═══════════════════════════════════════════════════════════
+  // OFFLINE-FIRST AUTH — حل جذري لمشكلة الأوفلاين
+  // المنطق:
+  //   1. لو Firebase رجع user حقيقي → أونلاين ✅
+  //   2. لو Firebase رجع null:
+  //      - عندنا uid محفوظ → شغّل أوفلاين فوراً (بغض النظر عن النت)
+  //      - مفيش uid → مستخدم جديد فعلاً → ورّي شاشة Login
+  //   3. لو Firebase أخّر أكتر من 4 ثوانٍ → نفس المنطق أعلاه
+  // ═══════════════════════════════════════════════════════════
+
+  let _authResolved = false;
+
+  function _resolveAuth(user){
+    if(_authResolved) return;
+    _authResolved = true;
+    window._fbCurrentUser = user;
+    if(typeof window._onFirebaseReady === 'function'){
+      window._onFirebaseReady(user);
+    }
+  }
+
+  // Timeout: لو Firebase ما ردش في 4 ثوانٍ → fallback للـ cache
+  const _authTimeout = setTimeout(()=>{
+    if(_authResolved) return;
+    const offlineUid   = localStorage.getItem('sj_offline_uid');
+    const offlineEmail = localStorage.getItem('sj_offline_email');
+    if(offlineUid){
+      _resolveAuth({ uid: offlineUid, email: offlineEmail, _isOffline: true });
+    } else {
+      _resolveAuth(null);
+    }
+  }, 4000);
+
   _fbAuth.onAuthStateChanged((user) => {
+    clearTimeout(_authTimeout);
     if(user){
-      // ✅ أونلاين — احفظ بيانات المستخدم محلياً عشان الأوفلاين
-      window._fbCurrentUser = user;
+      // ✅ Firebase أكّد الجلسة
       localStorage.setItem('sj_offline_uid',   user.uid);
       localStorage.setItem('sj_offline_email', user.email);
+      localStorage.setItem('sj_offline_ts',    Date.now().toString());
+      _resolveAuth(user);
     } else {
-      // مفيش user من Firebase — ممكن أوفلاين أو مش مسجل
       const offlineUid   = localStorage.getItem('sj_offline_uid');
       const offlineEmail = localStorage.getItem('sj_offline_email');
-      if(offlineUid && !navigator.onLine){
-        // ✅ أوفلاين + سبق دخل → استخدم البيانات المحلية
-        window._fbCurrentUser = { uid: offlineUid, email: offlineEmail, _isOffline: true };
+      if(offlineUid){
+        // ✅ سبق وسجل دخول → شغّل أوفلاين (مدى الحياة)
+        _resolveAuth({ uid: offlineUid, email: offlineEmail, _isOffline: true });
+        // جرب تجدد الـ token في الخلفية بعد 3 ثوانٍ
+        setTimeout(async ()=>{
+          try{
+            const currentUser = _fbAuth.currentUser;
+            if(currentUser){
+              window._fbCurrentUser = currentUser;
+              localStorage.setItem('sj_offline_uid',   currentUser.uid);
+              localStorage.setItem('sj_offline_email', currentUser.email);
+              localStorage.setItem('sj_offline_ts',    Date.now().toString());
+              if(typeof _fbSyncLoad === 'function') await _fbSyncLoad();
+              if(typeof _fbSyncSave === 'function') _fbSyncSave();
+            }
+          }catch(e){}
+        }, 3000);
       } else {
-        // ❌ مش مسجل أو أونلاين وعمل logout فعلاً
-        window._fbCurrentUser = null;
+        // ❌ مستخدم جديد فعلاً → ورّي Login
         localStorage.removeItem('sj_offline_uid');
         localStorage.removeItem('sj_offline_email');
+        localStorage.removeItem('sj_offline_ts');
+        _resolveAuth(null);
       }
     }
-    if(typeof window._onFirebaseReady === 'function'){
-      window._onFirebaseReady(window._fbCurrentUser);
-    }
+  });
+
+  // مزامنة تلقائية لما يرجع النت
+  window.addEventListener('online', async ()=>{
+    if(!window._fbCurrentUser?._isOffline) return;
+    try{
+      await new Promise(r => setTimeout(r, 1500));
+      const currentUser = _fbAuth.currentUser;
+      if(currentUser){
+        window._fbCurrentUser = currentUser;
+        localStorage.setItem('sj_offline_uid',   currentUser.uid);
+        localStorage.setItem('sj_offline_email', currentUser.email);
+        localStorage.setItem('sj_offline_ts',    Date.now().toString());
+        if(typeof _fbSyncSave === 'function') await _fbSyncSave();
+        if(typeof _fbSyncLoad === 'function') await _fbSyncLoad();
+        if(typeof renderPlaces === 'function'){ renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace(); renderStats(); }
+        if(typeof showToast   === 'function') showToast('✅ رجع النت — تمت المزامنة');
+      }
+    }catch(e){}
   });
 </script>
 <style>
@@ -579,26 +644,34 @@
 
 <!-- ══ FIREBASE AUTH SCREEN ══ -->
 <div id="fb-auth-screen" style="display:flex;position:fixed;inset:0;z-index:99998;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:30px;">
+
+  <!-- Language toggle -->
+  <div style="position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:3;">
+    <div onclick="fbToggleLang()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:6px 14px;cursor:pointer;font-size:.78rem;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:6px;-webkit-user-select:none;user-select:none;">
+      🌐 <span id="fb-lang-label">English</span>
+    </div>
+  </div>
+
   <div style="width:100%;max-width:360px;text-align:center;">
     <div style="font-size:3rem;margin-bottom:10px;">🔥</div>
     <div style="font-size:1.5rem;font-weight:900;color:var(--cyan);margin-bottom:4px;font-family:Arial Black,Arial;letter-spacing:2px;">SHIFTATY</div>
-    <div style="font-size:.82rem;color:var(--muted);margin-bottom:28px;">بياناتك محفوظة على السحابة ☁️</div>
+    <div id="fb-auth-subtitle" style="font-size:.82rem;color:var(--muted);margin-bottom:28px;">بياناتك محفوظة على السحابة ☁️</div>
 
     <!-- Tabs -->
     <div style="display:flex;background:var(--s1);border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid var(--border);">
-      <button id="fb-tab-login" onclick="fbShowTab('login')" style="flex:1;padding:10px;border:none;border-radius:11px;background:linear-gradient(135deg,var(--violet),var(--cyan));color:#fff;font-family:Cairo,sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;">تسجيل دخول</button>
-      <button id="fb-tab-register" onclick="fbShowTab('register')" style="flex:1;padding:10px;border:none;border-radius:11px;background:transparent;color:var(--muted);font-family:Cairo,sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;">حساب جديد</button>
+      <button id="fb-tab-login" onclick="fbShowTab('login')" style="flex:1;padding:10px;border:none;border-radius:11px;background:linear-gradient(135deg,var(--violet),var(--cyan));color:#fff;font-family:Cairo,sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;"><span id="fb-tab-login-lbl">تسجيل دخول</span></button>
+      <button id="fb-tab-register" onclick="fbShowTab('register')" style="flex:1;padding:10px;border:none;border-radius:11px;background:transparent;color:var(--muted);font-family:Cairo,sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;"><span id="fb-tab-register-lbl">حساب جديد</span></button>
     </div>
 
     <div style="background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:22px;">
       <div class="field" style="margin-bottom:14px;">
-        <label style="font-size:.72rem;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;text-align:right;">📧 الإيميل</label>
+        <label id="fb-email-lbl" style="font-size:.72rem;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;text-align:right;">📧 الإيميل</label>
         <input id="fb-email" type="email" placeholder="example@email.com" dir="ltr"
           style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:13px 14px;color:var(--text);font-family:Cairo,sans-serif;font-size:15px;outline:none;box-sizing:border-box;text-align:left;"
           onkeydown="if(event.key==='Enter')fbSubmit()">
       </div>
       <div class="field" style="margin-bottom:6px;">
-        <label style="font-size:.72rem;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;text-align:right;">🔑 الباسورد</label>
+        <label id="fb-pass-lbl" style="font-size:.72rem;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;text-align:right;">🔑 الباسورد</label>
         <input id="fb-pass" type="password" placeholder="••••••••"
           style="width:100%;background:var(--s2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:13px 14px;color:var(--text);font-family:Cairo,sans-serif;font-size:15px;outline:none;box-sizing:border-box;"
           onkeydown="if(event.key==='Enter')fbSubmit()">
@@ -606,10 +679,10 @@
       <div id="fb-error" style="color:var(--red);font-size:.78rem;margin-top:8px;min-height:18px;text-align:right;"></div>
       <button onclick="fbSubmit()" id="fb-submit-btn"
         style="width:100%;margin-top:14px;padding:14px;background:linear-gradient(135deg,var(--violet),var(--cyan));border:none;border-radius:13px;color:#fff;font-family:Cairo,sans-serif;font-weight:900;font-size:1rem;cursor:pointer;">
-        دخول ⚡
+        <span id="fb-submit-lbl">دخول ⚡</span>
       </button>
     </div>
-    <div id="fb-loading" style="display:none;margin-top:18px;color:var(--muted);font-size:.85rem;">⏳ جاري التحميل...</div>
+    <div id="fb-loading" style="display:none;margin-top:18px;color:var(--muted);font-size:.85rem;"><span id="fb-loading-lbl">⏳ جاري التحميل...</span></div>
   </div>
 </div>
 <!-- ══ /FIREBASE AUTH SCREEN ══ -->
@@ -2847,6 +2920,35 @@ function toggleLang(){
   applyLang();
 }
 
+function fbToggleLang(){
+  currentLang = currentLang === 'ar' ? 'en' : 'ar';
+  localStorage.setItem('sj_lang', currentLang);
+  _cacheSet('sj_lang', currentLang);
+  applyAuthLang();
+}
+
+function applyAuthLang(){
+  const isEn = currentLang === 'en';
+  const s = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  document.documentElement.dir  = isEn ? 'ltr' : 'rtl';
+  document.documentElement.lang = currentLang;
+  s('fb-lang-label',       isEn ? 'عربي'                                    : 'English');
+  s('fb-auth-subtitle',    isEn ? 'Your data is saved on the cloud ☁️'      : 'بياناتك محفوظة على السحابة ☁️');
+  s('fb-tab-login-lbl',    isEn ? 'Sign In'                                 : 'تسجيل دخول');
+  s('fb-tab-register-lbl', isEn ? 'New Account'                             : 'حساب جديد');
+  s('fb-email-lbl',        isEn ? '📧 Email'                                 : '📧 الإيميل');
+  s('fb-pass-lbl',         isEn ? '🔑 Password'                              : '🔑 الباسورد');
+  s('fb-loading-lbl',      isEn ? '⏳ Loading...'                            : '⏳ جاري التحميل...');
+  const loginTabActive = document.getElementById('fb-tab-login')?.style.background.includes('gradient');
+  s('fb-submit-lbl', loginTabActive ? (isEn ? 'Sign In ⚡' : 'دخول ⚡') : (isEn ? 'Create Account ⚡' : 'إنشاء حساب ⚡'));
+  const emailLbl = document.getElementById('fb-email-lbl');
+  if(emailLbl) emailLbl.style.textAlign = isEn ? 'left' : 'right';
+  const passLbl = document.getElementById('fb-pass-lbl');
+  if(passLbl) passLbl.style.textAlign = isEn ? 'left' : 'right';
+  const errEl = document.getElementById('fb-error');
+  if(errEl) errEl.style.textAlign = isEn ? 'left' : 'right';
+}
+
 // lockToggleLang + applyLockLang removed (lock screen disabled)
 
 function applyLang(){
@@ -3575,17 +3677,18 @@ function fbShowTab(tab){
   _fbTab = tab;
   const loginBtn    = document.getElementById('fb-tab-login');
   const registerBtn = document.getElementById('fb-tab-register');
-  const submitBtn   = document.getElementById('fb-submit-btn');
+  const submitLbl   = document.getElementById('fb-submit-lbl');
   const on = 'linear-gradient(135deg,var(--violet),var(--cyan))';
   const off = 'transparent';
+  const isEn = currentLang === 'en';
   if(tab === 'login'){
     loginBtn.style.background = on;    loginBtn.style.color = '#fff';
     registerBtn.style.background = off; registerBtn.style.color = 'var(--muted)';
-    submitBtn.textContent = 'دخول ⚡';
+    if(submitLbl) submitLbl.textContent = isEn ? 'Sign In ⚡' : 'دخول ⚡';
   } else {
     registerBtn.style.background = on;  registerBtn.style.color = '#fff';
     loginBtn.style.background = off;    loginBtn.style.color = 'var(--muted)';
-    submitBtn.textContent = 'إنشاء حساب ⚡';
+    if(submitLbl) submitLbl.textContent = isEn ? 'Create Account ⚡' : 'إنشاء حساب ⚡';
   }
   document.getElementById('fb-error').textContent = '';
 }
@@ -3595,24 +3698,23 @@ async function fbSubmit(){
   const pass  = document.getElementById('fb-pass').value;
   const errEl = document.getElementById('fb-error');
   const loadEl= document.getElementById('fb-loading');
+  const isEn  = currentLang === 'en';
   errEl.textContent = '';
-  if(!email || !pass){ errEl.textContent = '❌ أدخل الإيميل والباسورد'; return; }
-  if(pass.length < 6){ errEl.textContent = '❌ الباسورد على الأقل 6 أحرف'; return; }
+  if(!email || !pass){ errEl.textContent = isEn ? '❌ Enter email and password' : '❌ أدخل الإيميل والباسورد'; return; }
+  if(pass.length < 6){ errEl.textContent = isEn ? '❌ Password must be at least 6 characters' : '❌ الباسورد على الأقل 6 أحرف'; return; }
 
-  // ── Offline Login: لو مفيش نت وعنده حساب محفوظ ──
+  // ── Offline Login ──
   if(_fbTab === 'login' && !navigator.onLine){
     const offlineUid   = localStorage.getItem('sj_offline_uid');
     const offlineEmail = localStorage.getItem('sj_offline_email');
     if(offlineUid && offlineEmail && offlineEmail.toLowerCase() === email.toLowerCase()){
-      // ✅ نفس الإيميل المحفوظ — ندخله أوفلاين
       window._fbCurrentUser = { uid: offlineUid, email: offlineEmail, _isOffline: true };
       if(typeof window._onFirebaseReady === 'function'){
         window._onFirebaseReady(window._fbCurrentUser);
       }
       return;
     } else {
-      // ❌ أوفلاين وإيميل مختلف أو مفيش حساب محفوظ
-      errEl.textContent = '❌ مفيش إنترنت — سجل دخولك مرة واحدة وهو أونلاين الأول';
+      errEl.textContent = isEn ? '❌ No internet — sign in once while online first' : '❌ مفيش إنترنت — سجل دخولك مرة واحدة وهو أونلاين الأول';
       return;
     }
   }
@@ -3833,22 +3935,12 @@ window._onFirebaseReady = async function(user){
   if(user){
     document.getElementById('fb-auth-screen').style.display = 'none';
     if(user._isOffline){
-      // ✅ أوفلاين — استخدم البيانات المحلية مباشرة بدون Firebase
+      // ✅ أوفلاين — استخدم البيانات المحلية
       checkActivation();
       renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
       renderStats();
       _injectLogoutBtn(user.email);
       showToast('📵 أوفلاين — بياناتك المحلية محملة، هيتزامن لما يرجع النت');
-      // لما يرجع النت، زامن تلقائياً
-      window.addEventListener('online', async function _syncOnReconnect(){
-        window.removeEventListener('online', _syncOnReconnect);
-        showToast('🌐 رجع النت — جاري المزامنة...');
-        await _fbSyncSave();
-        await _fbSyncLoad();
-        renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
-        renderStats();
-        showToast('✅ تمت المزامنة بنجاح');
-      });
     } else {
       // ✅ أونلاين — اشتغل عادي
       const loaded = await _fbSyncLoad();
@@ -3885,6 +3977,7 @@ function _injectLogoutBtn(email){
 
 document.addEventListener('DOMContentLoaded', async ()=>{
   checkOnboarding();
+  applyAuthLang(); // تطبيق لغة شاشة Login فوراً
   // شغّل checkLock و _loadData بالتوازي عشان نوفر وقت الفتح
   await _loadData(); // checkLock removed — Firebase Auth handles login
   // حفظ بيانات التفعيل في Cache Storage فوراً عند كل تشغيل
