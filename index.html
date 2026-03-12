@@ -931,37 +931,46 @@
   <!-- ══ SUMMARY ══ -->
   <div id="panel-summary" class="panel">
     <div class="print-hdr"><h2 id="lbl-report-title">تقرير المرتب</h2><p id="print-range"></p></div>
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;">
+
+    <!-- ══ فلتر مشترك واحد ══ -->
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:.68rem;color:var(--cyan);font-weight:800;letter-spacing:.8px;margin-bottom:10px;" id="lbl-shared-filter-title">🔍 الفلتر</div>
+
+      <!-- من/لتاريخ -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
         <div>
-          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-from-date">📅 من تاريخ</div>
-          <input type="hidden" id="s-date-from" onchange="renderSummary()">
-          <div class="cdp-fake-input" id="s-date-from-display" onclick="openDatePicker('s-date-from','s-date-from-display')" style="font-size:.85rem;padding:9px 12px;">
+          <div style="font-size:.6rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-from-date">📅 من تاريخ</div>
+          <input type="hidden" id="s-date-from" onchange="onSharedFilterChange()">
+          <div class="cdp-fake-input" id="s-date-from-display" onclick="openDatePicker('s-date-from','s-date-from-display')" style="font-size:.82rem;padding:8px 11px;">
             <span id="s-date-from-lbl" style="color:var(--muted);">—</span>
           </div>
         </div>
         <div>
-          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-to-date">📅 لتاريخ</div>
-          <input type="hidden" id="s-date-to" onchange="renderSummary()">
-          <div class="cdp-fake-input" id="s-date-to-display" onclick="openDatePicker('s-date-to','s-date-to-display')" style="font-size:.85rem;padding:9px 12px;">
+          <div style="font-size:.6rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-to-date">📅 لتاريخ</div>
+          <input type="hidden" id="s-date-to" onchange="onSharedFilterChange()">
+          <div class="cdp-fake-input" id="s-date-to-display" onclick="openDatePicker('s-date-to','s-date-to-display')" style="font-size:.82rem;padding:8px 11px;">
             <span id="s-date-to-lbl" style="color:var(--muted);">—</span>
           </div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;">
+
+      <!-- شهر + كل الوقت -->
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:flex-end;margin-bottom:8px;">
         <div>
-          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-or-month">🗓️ أو اختر شهر</div>
-          <select id="s-month" onchange="onMonthChange()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;direction:ltr;"></select>
+          <div style="font-size:.6rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-or-month">🗓️ أو اختر شهر</div>
+          <select id="s-month" onchange="onSharedMonthChange()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;direction:ltr;"></select>
         </div>
-        <div style="padding-top:18px;">
-          <button class="btn btn-out" onclick="clearSummaryFilter()" id="all-time-lbl" style="white-space:nowrap;padding:8px 12px;font-size:.78rem;">كل الوقت</button>
-        </div>
+        <button class="btn btn-out" onclick="clearSharedFilter()" id="all-time-lbl" style="white-space:nowrap;padding:9px 13px;font-size:.78rem;margin-bottom:1px;">كل الوقت</button>
       </div>
-      <div style="margin-top:8px;">
-        <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-s-place">🏥 المكان</div>
-        <select id="s-place" onchange="renderSummary()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;"></select>
+
+      <!-- المكان -->
+      <div>
+        <div style="font-size:.6rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-s-place">🏥 المكان</div>
+        <select id="s-place" onchange="onSharedFilterChange()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;"></select>
       </div>
     </div>
+
+    <!-- ══ الإحصائيات ══ -->
     <div class="stat-grid">
       <div class="stat-box c"><div class="stat-num" id="st-shifts">0</div><div class="stat-lbl" id="lbl-st-shifts">شيفتات</div></div>
       <div class="stat-box v"><div class="stat-num" id="st-hours">0</div><div class="stat-lbl" id="lbl-st-hours">ساعات</div></div>
@@ -969,11 +978,14 @@
       <div class="stat-box o"><div class="stat-num" id="st-visits">0</div><div class="stat-lbl" id="lbl-st-visits">زيارة</div></div>
       <div class="stat-box p"><div class="stat-num" id="st-places">0</div><div class="stat-lbl" id="lbl-st-places">أماكن</div></div>
     </div>
+
+    <!-- ══ toggle الكلي / لكل مكان ══ -->
     <div class="vtoggle">
       <button class="vtbtn on" id="vt-total" onclick="setView('total')">📊 <span id="lbl-vt-total">الكلي</span></button>
       <button class="vtbtn" id="vt-byplace" onclick="setView('byplace')">🏥 <span id="lbl-vt-byplace">لكل مكان</span></button>
     </div>
-    <!-- Total -->
+
+    <!-- ══ view: الكلي ══ -->
     <div id="view-total">
       <div class="gtax-row">
         <label id="lbl-tax-pct">🧾 نسبة الضريبة</label>
@@ -995,35 +1007,14 @@
         <div class="s-row snet"><span class="lbl" id="lbl-net-row">💰 الصافي</span><span class="val" id="sal-net">0 ج</span></div>
       </div>
     </div>
-    <!-- By place -->
+
+    <!-- ══ view: لكل مكان ══ -->
     <div id="view-byplace" style="display:none;">
-      <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:.72rem;color:var(--cyan);font-weight:800;margin-bottom:10px;" id="lbl-bp-filter">📅 فلتر لكل مكان على حده</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-          <div style="flex:1;min-width:120px;">
-            <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:700;" id="lbl-bp-from">من تاريخ</div>
-            <input type="hidden" id="bp-date-from" onchange="renderByPlace()">
-            <div class="cdp-fake-input" id="bp-date-from-display" onclick="openDatePicker('bp-date-from','bp-date-from-display')" style="font-size:.85rem;padding:9px 12px;">
-              <span id="bp-date-from-lbl" style="color:var(--muted);">—</span>
-            </div>
-          </div>
-          <div style="flex:1;min-width:120px;">
-            <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:700;" id="lbl-bp-to">لتاريخ</div>
-            <input type="hidden" id="bp-date-to" onchange="renderByPlace()">
-            <div class="cdp-fake-input" id="bp-date-to-display" onclick="openDatePicker('bp-date-to','bp-date-to-display')" style="font-size:.85rem;padding:9px 12px;">
-              <span id="bp-date-to-lbl" style="color:var(--muted);">—</span>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <select id="bp-month" onchange="onBpMonthChange()" style="flex:1;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;direction:ltr;"></select>
-          <button class="btn btn-out" onclick="clearBpFilter()" id="lbl-bp-alltime" style="font-size:.75rem;padding:9px 12px;">كل الوقت</button>
-        </div>
-        <div style="margin-top:10px;">
-          <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:700;" id="lbl-bp-place-filter">🏥 المكان</div>
-          <select id="bp-filter-place" onchange="renderByPlace()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;-webkit-appearance:none;"></select>
-        </div>
-      </div>
+      <!-- hidden inputs للـ bp date (يأخذ قيمه من الفلتر المشترك تلقائياً) -->
+      <input type="hidden" id="bp-date-from">
+      <input type="hidden" id="bp-date-to">
+      <select id="bp-month" style="display:none;"></select>
+      <select id="bp-filter-place" style="display:none;"></select>
       <div id="byplace-list"></div>
       <div class="salary-card">
         <div class="s-row stotal"><span class="lbl" id="lbl-bp-gross">📊 الإجمالي الكلي</span><span class="val" id="bp-gross">0 ج</span></div>
@@ -1031,7 +1022,7 @@
         <div class="s-row snet"><span class="lbl" id="lbl-bp-net">💰 الصافي الكلي</span><span class="val" id="bp-net">0 ج</span></div>
       </div>
 
-      <!-- ── اختيار مكان للطباعة المنفردة ── -->
+      <!-- ── طباعة مكان محدد ── -->
       <div style="background:var(--s2);border:1px solid rgba(124,58,237,0.25);border-radius:14px;padding:14px;margin-top:4px;margin-bottom:4px;">
         <div style="font-size:.72rem;color:#a78bfa;font-weight:800;margin-bottom:10px;" id="lbl-bp-print-filter">🖨️ طباعة مكان محدد</div>
         <div style="font-size:.65rem;color:var(--muted);margin-bottom:6px;font-weight:700;" id="lbl-bp-print-place">اختر المكان للطباعة</div>
@@ -1039,6 +1030,7 @@
         <button class="btn" onclick="printSinglePlace()" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;width:100%;padding:12px;font-size:.88rem;" id="lbl-bp-print-btn">🖨️ طباعة هذا المكان</button>
       </div>
     </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
       <button class="btn btn-pdf" onclick="printReport()"><span id="print-btn-lbl">🖨️ طباعة</span></button>
       <button class="btn" onclick="exportAndShare()" style="background:linear-gradient(135deg,#1a73e8,#00e5ff);color:#fff;width:100%;padding:15px;font-size:.95rem;"><span id="export-pdf-lbl">📤 تصدير ومشاركة</span></button>
@@ -2185,14 +2177,7 @@ function populateSels(){
     places.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;bpPrintSel.appendChild(o);});
     if(prev)bpPrintSel.value=prev;
   }
-  // ── bp-filter-place: selector عرض مكان واحد ──
-  const bpFilterSel=document.getElementById("bp-filter-place");
-  if(bpFilterSel){
-    const prev=bpFilterSel.value;
-    bpFilterSel.innerHTML=`<option value="">${isEn?"All Places":"كل الأماكن"}</option>`;
-    places.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.name;bpFilterSel.appendChild(o);});
-    if(prev)bpFilterSel.value=prev;
-  }
+  // bp-filter-place يأخذ قيمته من s-place عبر _syncBpFromShared — لا يحتاج populate
 }
 function resetLog(){
   document.getElementById('l-place').value='';
@@ -2492,13 +2477,38 @@ function setView(v){
   document.getElementById('view-byplace').style.display=v==='byplace'?'block':'none';
   renderSummary();
 }
-function onMonthChange(){
+// ══ دوال الفلتر المشترك ══
+function _syncBpFromShared(){
+  // ينسخ قيم الفلتر المشترك إلى bp hidden inputs
+  const sm = document.getElementById('s-month')?.value || '';
+  const sf = document.getElementById('s-date-from')?.value || '';
+  const st = document.getElementById('s-date-to')?.value || '';
+  const sp = document.getElementById('s-place')?.value || '';
+  const bm = document.getElementById('bp-month');
+  const bf = document.getElementById('bp-date-from');
+  const bt = document.getElementById('bp-date-to');
+  const bfp = document.getElementById('bp-filter-place');
+  if(bm)  bm.value  = sm;
+  if(bf)  bf.value  = sf;
+  if(bt)  bt.value  = st;
+  if(bfp) bfp.value = sp;
+}
+function onSharedFilterChange(){
+  _syncBpFromShared();
+  renderSummary();
+}
+function onSharedMonthChange(){
   // لما يختار شهر يمسح من/لتاريخ
   document.getElementById('s-date-from').value='';
   document.getElementById('s-date-to').value='';
+  const lf=document.getElementById('s-date-from-lbl');
+  const lt=document.getElementById('s-date-to-lbl');
+  if(lf){lf.textContent='—';lf.style.color='var(--muted)';}
+  if(lt){lt.textContent='—';lt.style.color='var(--muted)';}
+  _syncBpFromShared();
   renderSummary();
 }
-function clearSummaryFilter(){
+function clearSharedFilter(){
   document.getElementById('s-month').value='';
   document.getElementById('s-date-from').value='';
   document.getElementById('s-date-to').value='';
@@ -2508,8 +2518,12 @@ function clearSummaryFilter(){
   if(lt){lt.textContent='—';lt.style.color='var(--muted)';}
   const sp=document.getElementById('s-place');
   if(sp)sp.value='';
+  _syncBpFromShared();
   renderSummary();
 }
+// backward compat
+function onMonthChange(){ onSharedMonthChange(); }
+function clearSummaryFilter(){ clearSharedFilter(); }
 function renderSummary(){
   const sm=document.getElementById('s-month').value;
   const sf=document.getElementById('s-date-from').value;
@@ -2558,32 +2572,14 @@ function renderSummary(){
   document.getElementById('net-salary').textContent=net.toLocaleString();
   document.getElementById('tax-pct-lbl').textContent=taxPct;
 
-  // by place — استدعاء منفصل عشان له فلتر مختلف
+  // by place — يأخذ قيمه من الفلتر المشترك
+  _syncBpFromShared();
   renderByPlace();
 }
 
-function onBpMonthChange(){
-  document.getElementById('bp-date-from').value='';
-  document.getElementById('bp-date-to').value='';
-  const lf = document.getElementById('bp-date-from-lbl');
-  const lt = document.getElementById('bp-date-to-lbl');
-  if(lf){ lf.textContent='—'; lf.style.color='var(--muted)'; }
-  if(lt){ lt.textContent='—'; lt.style.color='var(--muted)'; }
-  renderByPlace();
-}
-
-function clearBpFilter(){
-  document.getElementById('bp-month').value='';
-  document.getElementById('bp-date-from').value='';
-  document.getElementById('bp-date-to').value='';
-  const bfpEl=document.getElementById('bp-filter-place');
-  if(bfpEl) bfpEl.value='';
-  const lf = document.getElementById('bp-date-from-lbl');
-  const lt = document.getElementById('bp-date-to-lbl');
-  if(lf){ lf.textContent='—'; lf.style.color='var(--muted)'; }
-  if(lt){ lt.textContent='—'; lt.style.color='var(--muted)'; }
-  renderByPlace();
-}
+// onBpMonthChange / clearBpFilter → تحولوا للفلتر المشترك
+function onBpMonthChange(){ onSharedMonthChange(); }
+function clearBpFilter(){ clearSharedFilter(); }
 
 function renderByPlace(){
   const bm = document.getElementById('bp-month')?.value || '';
@@ -3282,14 +3278,8 @@ function applyLang(){
   s('lbl-extra-pay',     isEn ? '⚡ Extra'               : '⚡ إضافي');
   s('lbl-gross',         isEn ? '📊 Gross Total'         : '📊 الإجمالي');
   s('lbl-net-row',       isEn ? '💰 Net'                 : '💰 الصافي');
-  s('lbl-bp-filter',     isEn ? '📅 Filter Per Place'    : '📅 فلتر لكل مكان على حده');
-  s('lbl-bp-from',       isEn ? 'From Date'              : 'من تاريخ');
-  s('lbl-bp-to',         isEn ? 'To Date'                : 'لتاريخ');
+  s('lbl-shared-filter-title', isEn ? '🔍 Filter'             : '🔍 الفلتر');
   s('lbl-bp-alltime',    isEn ? 'All Time'               : 'كل الوقت');
-  s('lbl-bp-place-filter', isEn ? '🏥 Place'               : '🏥 المكان');
-  // update bp-filter-place first option
-  const bpFilterSel3 = document.getElementById('bp-filter-place');
-  if(bpFilterSel3 && bpFilterSel3.options[0]) bpFilterSel3.options[0].textContent = isEn ? 'All Places' : 'كل الأماكن';
   s('lbl-bp-gross',      isEn ? '📊 Grand Total'         : '📊 الإجمالي الكلي');
   s('lbl-bp-tax',        isEn ? '✂️ Total Discounts'       : '✂️ مجموع الخصومات');
 
