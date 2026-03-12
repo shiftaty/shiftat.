@@ -1026,6 +1026,14 @@
         <div class="s-row stax"><span class="lbl" id="lbl-bp-tax">✂️ مجموع الخصومات</span><span class="val" id="bp-tax">0 ج</span></div>
         <div class="s-row snet"><span class="lbl" id="lbl-bp-net">💰 الصافي الكلي</span><span class="val" id="bp-net">0 ج</span></div>
       </div>
+
+      <!-- ── اختيار مكان للطباعة المنفردة ── -->
+      <div style="background:var(--s2);border:1px solid rgba(124,58,237,0.25);border-radius:14px;padding:14px;margin-top:4px;margin-bottom:4px;">
+        <div style="font-size:.72rem;color:#a78bfa;font-weight:800;margin-bottom:10px;" id="lbl-bp-print-filter">🖨️ طباعة مكان محدد</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-bottom:6px;font-weight:700;" id="lbl-bp-print-place">اختر المكان للطباعة</div>
+        <select id="bp-print-place" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;margin-bottom:10px;"></select>
+        <button class="btn" onclick="printSinglePlace()" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;width:100%;padding:12px;font-size:.88rem;" id="lbl-bp-print-btn">🖨️ طباعة هذا المكان</button>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
       <button class="btn btn-pdf" onclick="printReport()"><span id="print-btn-lbl">🖨️ طباعة</span></button>
@@ -2165,6 +2173,14 @@ function populateSels(){
     places.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sSel.appendChild(o);});
     if(prev)sSel.value=prev;
   }
+  // ── bp-print-place: selector طباعة مكان واحد ──
+  const bpPrintSel=document.getElementById('bp-print-place');
+  if(bpPrintSel){
+    const prev=bpPrintSel.value;
+    bpPrintSel.innerHTML=`<option value="">${isEn?'All Places':'كل الأماكن'}</option>`;
+    places.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;bpPrintSel.appendChild(o);});
+    if(prev)bpPrintSel.value=prev;
+  }
 }
 function resetLog(){
   document.getElementById('l-place').value='';
@@ -2650,6 +2666,38 @@ function updatePlaceDiscount(pid){
   placeDiscount[pid]=val;save();
   renderByPlace();
 }
+function printSinglePlace(){
+  const selPid = document.getElementById("bp-print-place")?.value || "";
+  const bm = document.getElementById("bp-month")?.value || "";
+  const bf = document.getElementById("bp-date-from")?.value || "";
+  const bt = document.getElementById("bp-date-to")?.value || "";
+  const isEn = currentLang === "en";
+  let list = [...shifts];
+  if(bm) list = list.filter(s => s.date.startsWith(bm));
+  else if(bf || bt) list = list.filter(s => { if(bf && s.date < bf) return false; if(bt && s.date > bt) return false; return true; });
+  if(selPid) list = list.filter(s => s.placeId+"" === selPid+"");
+  if(!list.length){ showToast(isEn?"⚠️ No data":"⚠️ لا يوجد بيانات"); return; }
+  const dir2 = isEn ? "ltr" : "rtl";
+  const byPlace = {};
+  const placeColors = ["#1a73e8","#7c3aed","#00897b","#e65100","#c2185b","#0288d1","#558b2f","#6a1b9a"];
+  let ci = 0;
+  list.forEach(s=>{ const k = s.placeId+""; if(!byPlace[k]){byPlace[k]={name:s.placeName,shifts:[],total:0,base:0,extra:0,color:placeColors[ci%placeColors.length]};ci++;} byPlace[k].shifts.push(s); byPlace[k].total += s.total; byPlace[k].base += s.basePay; byPlace[k].extra += s.extraPay; });
+  const period = bm || ((bf||(isEn?"Start":"البداية"))+" → "+(bt||(isEn?"End":"النهاية")));
+  const taxPct = parseFloat(document.getElementById("tax-pct")?.value)||0;
+  const grossTotal = list.reduce((a,s)=>a+s.total, 0);
+  const globalTaxAmt = grossTotal * taxPct / 100;
+  const perPlaceTaxAmt = Object.keys(byPlace).reduce((a,pid)=>{ const pTax = (placeTax && placeTax[pid]) ? placeTax[pid] : 0; return a + (byPlace[pid].total*pTax/100); }, 0);
+  const taxAmt = globalTaxAmt > 0 ? globalTaxAmt : perPlaceTaxAmt;
+  const uniquePids = [...new Set(list.map(s=>s.placeId+""))];
+  const totalDiscAmt = uniquePids.reduce((a,pid)=>a+(placeDiscount[pid]||0),0);
+  const netTotal = grossTotal - taxAmt - totalDiscAmt;
+  const html = _buildReportHTML(isEn, dir2, period, taxPct, grossTotal, taxAmt, netTotal, list, byPlace, placeTax, true);
+  const win = window.open("","_blank");
+  if(!win){showToast("⚠️ "+(isEn?"Allow popups":"افتح الـ popup"));return;}
+  win.document.write(html);
+  win.document.close();
+}
+
 function printReport(){
   _buildAndOpenReport(true);
 }
@@ -3230,6 +3278,12 @@ function applyLang(){
   s('lbl-total-discount-row', isEn ? '📋 Total Deductions'  : '📋 إجمالي الخصومات');
 
   s('lbl-bp-net',        isEn ? '💰 Net Total'           : '💰 الصافي الكلي');
+  s('lbl-bp-print-filter', isEn ? '🖨️ Print Specific Place'  : '🖨️ طباعة مكان محدد');
+  s('lbl-bp-print-place',  isEn ? 'Choose Place to Print'  : 'اختر المكان للطباعة');
+  s('lbl-bp-print-btn',    isEn ? '🖨️ Print This Place'     : '🖨️ طباعة هذا المكان');
+  // update bp-print-place first option
+  const bpPrintSel2 = document.getElementById('bp-print-place');
+  if(bpPrintSel2 && bpPrintSel2.options[0]) bpPrintSel2.options[0].textContent = isEn ? 'All Places' : 'كل الأماكن';
 
   // tax row label (has inner span so handle separately)
   const taxRowEl = document.getElementById('lbl-tax-row');
