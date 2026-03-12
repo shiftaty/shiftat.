@@ -902,6 +902,9 @@
       <select id="f-month" onchange="renderShifts()" style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;flex:1;direction:ltr;"></select>
       <button class="btn btn-out" onclick="clearFilters()">✕</button>
     </div>
+    <div style="margin-bottom:10px;">
+      <button onclick="clearShiftsOnly()" style="width:100%;background:rgba(255,71,71,0.1);border:1px solid rgba(255,71,71,0.35);border-radius:12px;padding:11px;color:#ff4747;font-family:Cairo,sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;" id="lbl-shifts-panel-clear">🗑️ مسح كل الشيفتات</button>
+    </div>
     <div id="shifts-list"><div class="empty"><div class="ico">📋</div><p id="lbl-no-shifts-yet">لا يوجد شيفتات بعد</p></div></div>
   </div>
 
@@ -3310,6 +3313,7 @@ function applyLang(){
   s('lbl-clear-cancel',     isEn?'Cancel'                                   :'إلغاء');
   s('lbl-confirm-cancel',   isEn?'Cancel'                                   :'إلغاء');
   s('lbl-clear-shifts-only',isEn?'📋 Clear Shifts Only'                     :'📋 مسح الشيفتات بس');
+  s('lbl-shifts-panel-clear',isEn?'🗑️ Clear All Shifts'                    :'🗑️ مسح كل الشيفتات');
   s('lbl-clear-all',        isEn?'🗑️ Clear Everything (Shifts + Places)'   :'🗑️ مسح كل حاجة (شيفتات + أماكن)');
   s('clear-modal-title',    isEn?'Clear Data'                               :'مسح البيانات');
   s('clear-modal-sub',      isEn?'Choose what to delete'                    :'اختار إيه اللي عايز تمسحه');
