@@ -4056,11 +4056,27 @@ async function fbSubmit(){
   document.getElementById('fb-submit-btn').disabled = true;
   try{
     if(_fbTab === 'login'){
-      await window._fbSignIn(email, pass);
+      const cred = await window._fbSignIn(email, pass);
+      // ── استدعاء مباشر بعد نجاح الـ login بدون انتظار onAuthStateChanged ──
+      if(cred && cred.user){
+        localStorage.setItem('sj_offline_uid',   cred.user.uid);
+        localStorage.setItem('sj_offline_email', cred.user.email);
+        localStorage.setItem('sj_offline_ts',    Date.now().toString());
+        window._fbCurrentUser = cred.user;
+        _authResolved = false; // reset عشان _resolveAuth تشتغل
+        _resolveAuth(cred.user);
+      }
     } else {
-      await window._fbSignUp(email, pass);
+      const cred = await window._fbSignUp(email, pass);
+      if(cred && cred.user){
+        localStorage.setItem('sj_offline_uid',   cred.user.uid);
+        localStorage.setItem('sj_offline_email', cred.user.email);
+        localStorage.setItem('sj_offline_ts',    Date.now().toString());
+        window._fbCurrentUser = cred.user;
+        _authResolved = false;
+        _resolveAuth(cred.user);
+      }
     }
-    // onAuthStateChanged هيشتغل تلقائياً
   } catch(e){
     const msgs = {
       'auth/user-not-found':      '❌ الإيميل ده مش موجود',
