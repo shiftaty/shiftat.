@@ -492,6 +492,7 @@
   }
 
   /* ══ CUSTOM DATE PICKER ══ */
+  input[type="date"]{ font-variant-numeric: normal !important; -webkit-locale: "en" !important; direction: ltr !important; unicode-bidi: isolate !important; }
   .cdp-overlay{position:fixed;inset:0;background:rgba(6,11,20,0.85);z-index:99999;display:none;align-items:flex-end;justify-content:center;direction:ltr;}
   .cdp-overlay.open{display:flex;}
   .cdp-box{background:#0d1525;border:1px solid rgba(0,229,255,0.2);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0 0 24px;-webkit-transform:translateZ(0);transform:translateZ(0);direction:ltr !important;unicode-bidi:isolate;}
@@ -711,6 +712,7 @@
     <h1 id="admin-trigger" style="cursor:pointer;-webkit-user-select:none;user-select:none;"><span class="hc" style="font-family:Arial Black,Arial;letter-spacing:2px;">SHIFTATY</span></h1>
     <p id="header-subtitle">تتبع ساعات عملك وأرباحك في كل مكان</p>
     <div id="upgrade-banner" style="display:none;margin-top:12px;">
+      <div id="expiry-notice" style="display:none;background:rgba(255,109,0,0.15);border:1px solid rgba(255,109,0,0.4);border-radius:10px;padding:6px 12px;margin-bottom:8px;font-size:.75rem;color:var(--orange);font-weight:800;text-align:center;"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
         <a href="https://wa.me/201030391975?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B4%D8%AA%D8%B1%D9%8A%20%D8%A7%D9%84%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9%20%D9%85%D9%86%20%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%B3%D8%AC%D9%84%20%D8%B4%D9%8A%D9%81%D8%AA%D8%A7%D8%AA%D9%8A%20%F0%9F%92%B0" target="_blank" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;border:none;padding:10px 18px;border-radius:25px;font-family:Cairo,sans-serif;font-weight:900;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 15px rgba(37,211,102,0.4);">
           <span id="wa-btn-lbl">💬 تواصل على واتساب للترقية</span>
@@ -877,7 +879,7 @@
           <div id="extra-custom-rows"></div>
           <!-- زرار إضافة صف جديد -->
           <button type="button" onclick="addExtraRow()" id="add-extra-lbl" style="width:100%;background:rgba(0,229,255,0.08);border:1px dashed var(--cyan);color:var(--cyan);padding:7px;border-radius:10px;font-family:Cairo,sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;margin-top:4px;">
-            ➕ إضافة عنصر إضافي
+            ➕ إضافة عنصر
           </button>
         </div>
         <div class="field" style="margin-top:12px;">
@@ -1221,7 +1223,7 @@
     <div class="act-title" style="font-family:Arial Black,Arial;letter-spacing:2px;">SHIFTATY</div>
     <div class="act-price-badge" id="lbl-act-price" style="display:flex;align-items:center;justify-content:center;gap:8px;"><span style="text-decoration:line-through;opacity:0.6;font-size:.85rem;">200 جنيه</span> <span>100 جنيه فقط 🔥</span></div>
     <div style="text-align:center;font-size:.72rem;color:var(--orange);font-weight:800;margin-bottom:6px;">⏳ عرض لفترة محدودة</div>
-    <div class="act-sub" id="lbl-act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج بدل 200ج): أماكن غير محدودة</div>
+    <div class="act-sub" id="lbl-act-sub">✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج بدل 200ج): أماكن غير محدودة لمدة سنة كاملة</div>
 
     <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:16px;padding:14px 16px;margin:12px 0 4px;text-align:right;">
       <div style="font-size:.78rem;font-weight:800;color:var(--cyan);margin-bottom:10px;text-align:center;letter-spacing:.5px;">💳 متاح الدفع بـ</div>
@@ -1344,6 +1346,42 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbz-vo0FCoiEJ7uw6tCeREs-
 
 let isActivated = localStorage.getItem('sj_activated') === 'true';
 let isFreeMode  = localStorage.getItem('sj_freemode')  === 'true';
+
+// ── منطق الاشتراك السنوي ──
+const _ACT_EXPIRY_KEY = 'sj_act_expiry';
+function _getExpiryDate(){ return parseInt(localStorage.getItem(_ACT_EXPIRY_KEY)||'0'); }
+function _isExpired(){
+  if(!isActivated) return false;
+  const exp = _getExpiryDate();
+  if(!exp) return false;
+  return Date.now() > exp;
+}
+function _checkExpiry(){
+  if(_isExpired()){
+    isActivated = false;
+    isFreeMode  = true;
+    localStorage.removeItem('sj_activated');
+    localStorage.setItem('sj_freemode','true');
+    _cacheSet('sj_activated','');
+    _cacheSet('sj_freemode','true');
+    const expDate = new Date(_getExpiryDate()).toLocaleDateString('ar-EG');
+    const notice = document.getElementById('expiry-notice');
+    if(notice){ notice.style.display='block'; notice.textContent='⚠️ انتهى اشتراكك في ' + expDate + ' — جدّد للاستمرار بكل أماكنك'; }
+    document.getElementById('upgrade-banner').style.display = 'block';
+    showToast('⚠️ انتهى اشتراكك — جدّد الآن للاستمرار بكل أماكنك');
+  } else if(isActivated){
+    const exp = _getExpiryDate();
+    if(exp){
+      const daysLeft = Math.ceil((exp - Date.now()) / (24*60*60*1000));
+      if(daysLeft <= 30){
+        const notice = document.getElementById('expiry-notice');
+        if(notice){ notice.style.display='block'; notice.textContent='⏳ اشتراكك ينتهي خلال ' + daysLeft + ' يوم — جدّد قريباً'; }
+        document.getElementById('upgrade-banner').style.display = 'block';
+      }
+    }
+  }
+}
+setTimeout(_checkExpiry, 2000);
 let codesStore  = JSON.parse(localStorage.getItem('sj_codes') || '{}');
 function saveCodes(){ 
   const c = JSON.stringify(codesStore);
@@ -1460,6 +1498,11 @@ async function tryActivate(){
     _cacheSet('sj_activated','true');
     _cacheSet('sj_freemode','');
     await _saveActivatedCodeHash(code);
+    if(!localStorage.getItem(_ACT_EXPIRY_KEY)){
+      const exp = Date.now() + 365*24*60*60*1000;
+      localStorage.setItem(_ACT_EXPIRY_KEY, exp.toString());
+      _cacheSet(_ACT_EXPIRY_KEY, exp.toString());
+    }
     hideOverlay();
     document.getElementById('upgrade-banner').style.display='none';
     btn.textContent='🔓 تفعيل النسخة الكاملة';
@@ -1478,12 +1521,15 @@ async function tryActivate(){
       localStorage.removeItem('sj_freemode');
       _cacheSet('sj_activated','true');
       _cacheSet('sj_freemode','');
+      const exp = Date.now() + 365*24*60*60*1000;
+      localStorage.setItem(_ACT_EXPIRY_KEY, exp.toString());
+      _cacheSet(_ACT_EXPIRY_KEY, exp.toString());
       await _saveActivatedCodeHash(code);
-      // ── حفظ التفعيل فوراً على Firebase ──
       setTimeout(_fbSyncSave, 500);
       hideOverlay();
       document.getElementById('upgrade-banner').style.display='none';
-      showToast('🎉 تم التفعيل! بياناتك محفوظة تلقائياً على الكلاود ☁️');
+      const expStr = new Date(exp).toLocaleDateString('ar-EG');
+      showToast('🎉 تم التفعيل! اشتراكك ساري لمدة سنة حتى ' + expStr + ' ☁️');
     } else {
       err.textContent = res.reason==='used' ? '❌ هذا الكود تم استخدامه من قبل' : '❌ كود غير صحيح';
       err.style.display='block';
@@ -1504,11 +1550,14 @@ function _activateSuccess(){
   localStorage.removeItem('sj_freemode');
   _cacheSet('sj_activated','true');
   _cacheSet('sj_freemode','');
-  // ── حفظ التفعيل فوراً على Firebase ──
+  const exp = Date.now() + 365*24*60*60*1000;
+  localStorage.setItem(_ACT_EXPIRY_KEY, exp.toString());
+  _cacheSet(_ACT_EXPIRY_KEY, exp.toString());
   setTimeout(_fbSyncSave, 500);
   hideOverlay();
   document.getElementById('upgrade-banner').style.display='none';
-  showToast('🎉 تم التفعيل! بياناتك محفوظة تلقائياً على الكلاود ☁️');
+  const expStr = new Date(exp).toLocaleDateString('ar-EG');
+  showToast('🎉 تم التفعيل! اشتراكك ساري لمدة سنة حتى ' + expStr + ' ☁️');
 }
 
 // tap counter في DOMContentLoaded
@@ -2375,7 +2424,7 @@ function renderSummary(){
       return true;
     });
   }
-  document.getElementById('st-shifts').textContent=list.length;
+  document.getElementById('st-shifts').textContent=list.reduce((a,s)=>a+(s.count||1),0);
   document.getElementById('st-hours').textContent=list.reduce((a,s)=>a+(s.payType==='hour'?s.count:0),0);
   document.getElementById('st-cases').textContent=list.reduce((a,s)=>a+(s.payType==='case'?s.count:0)+(s.exCC||0)+(s.exTC||0)+(s.exOC||0),0);
   const basePay=list.reduce((a,s)=>a+s.basePay,0);
@@ -2436,10 +2485,11 @@ function renderByPlace(){
     if(!byPlace[k]){
       const p=places.find(x=>x.id==s.placeId);
       byPlace[k]={name:s.placeName,placeId:s.placeId,base:0,extra:0,total:0,count:0,
-        payType:s.payType, unitName: s.customUnit||(p&&p.customName)||null, unitCount:0, notes:[]};
+        payType:s.payType, unitName: s.customUnit||(p&&p.customName)||null, unitCount:0, notes:[], shifts:[]};
     }
     byPlace[k].base+=s.basePay;byPlace[k].extra+=s.extraPay;byPlace[k].total+=s.total;byPlace[k].count++;
     byPlace[k].unitCount+=(s.count||0);
+    byPlace[k].shifts.push(s);
     if(s.note && s.note.trim()) byPlace[k].notes.push({date:s.date, note:s.note.trim()});
   });
 
@@ -2467,7 +2517,8 @@ function renderByPlace(){
           <div class="pplace-name">🏥 ${d.name} <span class="tag tc" dir="${isEn?'ltr':'rtl'}">${(()=>{
             const PT={hour:isEn?'hr':'ساعة', shift:isEn?'shift':'شيفت', case:isEn?'case':'حالة', custom:isEn?'other':'آخر'};
             const unit = d.payType==='custom' ? (d.unitName||(isEn?'other':'آخر')) : (PT[d.payType]||(isEn?'shift':'شيفت'));
-            return d.unitCount>0 ? `${d.unitCount} ${unit}` : `${isEn?d.count+' shifts':d.count+' شيفت'}`;
+            const totalUnits = d.shifts.reduce((a,s)=>a+(s.count||0),0);
+            return totalUnits>0 ? `${totalUnits} ${unit}` : `${isEn?d.count+' shifts':d.count+' شيفت'}`;
           })()}</span></div>
           <div style="margin-top:4px;">${periodLabel}</div>
         </div>
@@ -2592,22 +2643,26 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
     </div>
 
     <!-- STAT CARDS (table بدل grid عشان html2canvas) -->
-    <table style="width:100%;border-collapse:separate;border-spacing:10px 0;margin:0 -10px 16px;padding:0 10px;">
+    ${(()=>{
+      const totalShifts = list.filter(s=>!['case','hour','custom'].includes(s.payType)).length;
+      const totalCases  = list.reduce((a,s)=>a+(s.payType==='case'?s.count:0)+(s.exCC||0)+(s.exTC||0)+(s.exOC||0),0);
+      const totalHours  = list.reduce((a,s)=>a+(s.payType==='hour'?s.count:0)+(s.exHC||0),0);
+      const customList  = list.filter(s=>s.payType==='custom');
+      const totalCustom = customList.reduce((a,s)=>a+(s.count||0),0);
+      const customLabel = customList.length>0?(customList[0].customUnit||(isEn?'Other':'آخر')):(isEn?'Other':'آخر');
+      const tdS = `background:#ffffff;border-radius:14px;padding:14px 4px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.08);vertical-align:middle;`;
+      const numS = `font-size:20px;font-weight:900;line-height:1.2;font-family:${F};`;
+      const lblS = `font-size:10px;color:#999;font-weight:600;font-family:${F};margin-top:4px;`;
+      return `<table style="width:100%;border-collapse:separate;border-spacing:5px 0;margin:0 -5px 16px;padding:0 5px;">
       <tr>
-        <td style="width:33%;background:#ffffff;border-radius:14px;padding:18px 8px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.08);border-top:4px solid #00897b;vertical-align:middle;">
-          <div style="font-size:28px;font-weight:900;color:#00897b;font-family:${F};line-height:1.2;">${nPlaces}</div>
-          <div style="font-size:12px;color:#999;font-weight:600;font-family:${F};margin-top:5px;">${isEn?'Places':'أماكن'}</div>
-        </td>
-        <td style="width:33%;background:#ffffff;border-radius:14px;padding:18px 8px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.08);border-top:4px solid #7c3aed;vertical-align:middle;">
-          <div style="font-size:28px;font-weight:900;color:#7c3aed;font-family:${F};line-height:1.2;">${list.length}</div>
-          <div style="font-size:12px;color:#999;font-weight:600;font-family:${F};margin-top:5px;">${isEn?'Shifts':'شيفتات'}</div>
-        </td>
-        <td style="width:33%;background:#ffffff;border-radius:14px;padding:18px 8px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.08);border-top:4px solid #1a73e8;vertical-align:middle;">
-          <div style="font-size:24px;font-weight:900;color:#1a73e8;font-family:${F};line-height:1.2;white-space:nowrap;">${grossTotal.toLocaleString()} <span style="font-size:16px;">${getCurrency()}</span></div>
-          <div style="font-size:12px;color:#999;font-weight:600;font-family:${F};margin-top:5px;">${isEn?'Gross Total':'الإجمالي'}</div>
-        </td>
+        <td style="${tdS}border-top:4px solid #00897b;"><div style="${numS}color:#00897b;">${nPlaces}</div><div style="${lblS}">${isEn?'Places':'أماكن'}</div></td>
+        <td style="${tdS}border-top:4px solid #7c3aed;"><div style="${numS}color:#7c3aed;">${totalShifts}</div><div style="${lblS}">${isEn?'Shifts':'شيفتات'}</div></td>
+        <td style="${tdS}border-top:4px solid #e65100;"><div style="${numS}color:#e65100;">${totalCases}</div><div style="${lblS}">${isEn?'Cases':'حالات'}</div></td>
+        <td style="${tdS}border-top:4px solid #0288d1;"><div style="${numS}color:#0288d1;">${totalHours}</div><div style="${lblS}">${isEn?'Hours':'ساعات'}</div></td>
+        <td style="${tdS}border-top:4px solid #c2185b;"><div style="${numS}color:#c2185b;">${totalCustom}</div><div style="${lblS}">${customLabel}</div></td>
       </tr>
-    </table>
+    </table>`;
+    })()}
 
     <!-- NET SALARY -->
     ${(()=>{
@@ -2863,7 +2918,7 @@ const T = {
     lang_switch: 'English', lang_icon: '🌐',
     hour: 'بالساعة', shift: 'بالشيفت', case: 'بالحالة',
     hours_extra: 'ساعات إضافية', cases: 'حالات عادية', tech: 'تكنيك', other: 'حالات أخرى',
-    add_extra: '➕ إضافة عنصر إضافي',
+    add_extra: '➕ إضافة عنصر',
     wa_btn: '💬 تواصل على واتساب للترقية', code_btn: '🔑 عندي كود تفعيل',
     share_btn: '🔗 مشاركة', all_time: 'كل الوقت',
     from_date: 'من تاريخ', to_date: 'إلى تاريخ', month: 'أو اختر شهر',
@@ -3022,7 +3077,7 @@ function applyLang(){
   s('lbl-notes',           isEn ? 'Notes'                     : 'ملاحظات');
   s('lbl-preview',         isEn ? 'Expected Total'            : 'الإجمالي المتوقع');
   s('save-shift-lbl',      isEn ? '💾 Save Shift'             : '💾 حفظ الشيفت');
-  s('add-extra-lbl',       isEn ? '➕ Add Extra Item'         : '➕ إضافة عنصر إضافي');
+  s('add-extra-lbl',       isEn ? '➕ Add Extra Item'         : '➕ إضافة عنصر');
 
   // default extra row name values (input values, not labels)
   const exHourName  = document.getElementById('l-ex-hour-name');
@@ -3270,7 +3325,7 @@ function applyLang(){
   // ── ACTIVATION OVERLAY ──
   s('lbl-act-price', isEn ? '100 EGP only 🔥 (was 200)' : '');  // handled in HTML
   const actSub=document.getElementById('lbl-act-sub');
-  if(actSub)actSub.innerHTML=isEn?'✅ Free: 1 place + shifts + full summary<br>⭐ Paid (100 EGP instead of 200): Unlimited places':'✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج بدل 200ج): أماكن غير محدودة';
+  if(actSub)actSub.innerHTML=isEn?'✅ Free: 1 place + shifts + full summary<br>⭐ Paid (100 EGP instead of 200): Unlimited places for 1 full year':'✅ مجاناً: مكان واحد + تسجيل شيفتات + ملخص كامل<br>⭐ مدفوع (100ج بدل 200ج): أماكن غير محدودة لمدة سنة كاملة';
   s('lbl-act-wa',       isEn?'💬 Contact on WhatsApp to upgrade'                     :'💬 تواصل على واتساب للدفع والترقية');
   s('lbl-act-free',     isEn?'🆓 Use Free Version'                                   :'🆓 استخدام النسخة المجانية');
   s('lbl-act-pay-title',isEn?'💳 To upgrade — pay 100 EGP (one time) to:'            :'💳 للترقية — ادفع 100 جنيه (مرة واحدة فقط) على:');
@@ -3788,6 +3843,7 @@ async function _fbSyncSave(){
       freemode:      localStorage.getItem('sj_freemode')     || '',
       act_code_h:    localStorage.getItem('sj_act_code_h')   || '',
       act_code_raw:  localStorage.getItem('sj_act_code_raw') || '',
+      act_expiry:    localStorage.getItem(_ACT_EXPIRY_KEY)   || '',
       codes:         localStorage.getItem('sj_codes')        || '{}',
       lang:          localStorage.getItem('sj_lang')         || 'ar',
       currency:      localStorage.getItem('sj_currency')     || '',
@@ -3833,6 +3889,7 @@ async function _fbSyncLoad(){
     }
     if(profile.act_code_h)   { localStorage.setItem('sj_act_code_h',   profile.act_code_h);   _cacheSet('sj_act_code_h',   profile.act_code_h); }
     if(profile.act_code_raw) { localStorage.setItem('sj_act_code_raw', profile.act_code_raw); _cacheSet('sj_act_code_raw', profile.act_code_raw); }
+    if(profile.act_expiry)   { localStorage.setItem(_ACT_EXPIRY_KEY,   profile.act_expiry);   _cacheSet(_ACT_EXPIRY_KEY,   profile.act_expiry); }
     if(profile.codes && profile.codes !== '{}') localStorage.setItem('sj_codes', profile.codes);
     if(profile.lang)     localStorage.setItem('sj_lang',     profile.lang);
     if(profile.currency) localStorage.setItem('sj_currency', profile.currency);
