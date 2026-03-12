@@ -1319,6 +1319,13 @@ function saveEditPlace(){
   if(!name){showToast('⚠️ أدخل اسم المكان');return;}
   const idx=places.findIndex(x=>x.id===id);
   if(idx===-1)return;
+  // ── منع تعديل الأماكن الزيادة في النسخة المجانية ──
+  if(!isActivated && isFreeMode && idx >= FREE_LIMIT){
+    closeEditModal();
+    showToast(currentLang==='en'?'⚠️ Free version: upgrade to edit all places':'⚠️ النسخة المجانية: اشترك للتعديل على كل الأماكن');
+    setTimeout(()=>{ showOverlay(); }, 1200);
+    return;
+  }
   places[idx]={...places[idx],name,type,customName,price};
   // تحديث اسم المكان في الشيفتات القديمة
   shifts=shifts.map(s=>s.placeId===id?{...s,placeName:name}:s);
@@ -2395,6 +2402,14 @@ function saveEditShift(){
   const pid=parseInt(document.getElementById('es-place').value);
   const p=places.find(x=>x.id===pid);
   if(!p){showToast('\u26a0\ufe0f \u0627\u062e\u062a\u0631 \u0645\u0643\u0627\u0646 \u0627\u0644\u0639\u0645\u0644');return;}
+  // ── منع تعديل شيفتات الأماكن الزيادة في النسخة المجانية ──
+  const placeIdx = places.findIndex(x=>x.id===pid);
+  if(!isActivated && isFreeMode && placeIdx >= FREE_LIMIT){
+    document.getElementById('edit-shift-modal').classList.remove('show');
+    showToast(currentLang==='en'?'⚠️ Free version: upgrade to edit shifts in all places':'⚠️ النسخة المجانية: اشترك لتعديل شيفتات كل الأماكن');
+    setTimeout(()=>{ showOverlay(); }, 1200);
+    return;
+  }
   const payType=document.getElementById('es-pay-type').value;
   const payPrice=parseFloat(document.getElementById('es-pay-price').value)||0;
   const count=parseFloat(document.getElementById('es-count').value)||0;
