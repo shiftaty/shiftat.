@@ -1019,6 +1019,10 @@
           <select id="bp-month" onchange="onBpMonthChange()" style="flex:1;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;direction:ltr;"></select>
           <button class="btn btn-out" onclick="clearBpFilter()" id="lbl-bp-alltime" style="font-size:.75rem;padding:9px 12px;">كل الوقت</button>
         </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:700;" id="lbl-bp-place-filter">🏥 المكان</div>
+          <select id="bp-filter-place" onchange="renderByPlace()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;-webkit-appearance:none;"></select>
+        </div>
       </div>
       <div id="byplace-list"></div>
       <div class="salary-card">
@@ -2181,6 +2185,14 @@ function populateSels(){
     places.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;bpPrintSel.appendChild(o);});
     if(prev)bpPrintSel.value=prev;
   }
+  // ── bp-filter-place: selector عرض مكان واحد ──
+  const bpFilterSel=document.getElementById("bp-filter-place");
+  if(bpFilterSel){
+    const prev=bpFilterSel.value;
+    bpFilterSel.innerHTML=`<option value="">${isEn?"All Places":"كل الأماكن"}</option>`;
+    places.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=p.name;bpFilterSel.appendChild(o);});
+    if(prev)bpFilterSel.value=prev;
+  }
 }
 function resetLog(){
   document.getElementById('l-place').value='';
@@ -2564,6 +2576,8 @@ function clearBpFilter(){
   document.getElementById('bp-month').value='';
   document.getElementById('bp-date-from').value='';
   document.getElementById('bp-date-to').value='';
+  const bfpEl=document.getElementById('bp-filter-place');
+  if(bfpEl) bfpEl.value='';
   const lf = document.getElementById('bp-date-from-lbl');
   const lt = document.getElementById('bp-date-to-lbl');
   if(lf){ lf.textContent='—'; lf.style.color='var(--muted)'; }
@@ -2575,8 +2589,10 @@ function renderByPlace(){
   const bm = document.getElementById('bp-month')?.value || '';
   const bf = document.getElementById('bp-date-from')?.value || '';
   const bt = document.getElementById('bp-date-to')?.value || '';
+  const bfp = document.getElementById('bp-filter-place')?.value || '';
 
   let list = [...shifts];
+  if(bfp) list = list.filter(s => s.placeId+'' === bfp+'');
   if(bm) list = list.filter(s => s.date.startsWith(bm));
   else if(bf || bt){
     list = list.filter(s => {
@@ -3270,6 +3286,10 @@ function applyLang(){
   s('lbl-bp-from',       isEn ? 'From Date'              : 'من تاريخ');
   s('lbl-bp-to',         isEn ? 'To Date'                : 'لتاريخ');
   s('lbl-bp-alltime',    isEn ? 'All Time'               : 'كل الوقت');
+  s('lbl-bp-place-filter', isEn ? '🏥 Place'               : '🏥 المكان');
+  // update bp-filter-place first option
+  const bpFilterSel3 = document.getElementById('bp-filter-place');
+  if(bpFilterSel3 && bpFilterSel3.options[0]) bpFilterSel3.options[0].textContent = isEn ? 'All Places' : 'كل الأماكن';
   s('lbl-bp-gross',      isEn ? '📊 Grand Total'         : '📊 الإجمالي الكلي');
   s('lbl-bp-tax',        isEn ? '✂️ Total Discounts'       : '✂️ مجموع الخصومات');
 
