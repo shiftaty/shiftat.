@@ -159,7 +159,7 @@
         localStorage.setItem('sj_offline_ts',    Date.now().toString());
         if(typeof _fbSyncSave === 'function') await _fbSyncSave();
         if(typeof _fbSyncLoad === 'function') await _fbSyncLoad();
-        if(typeof renderPlaces === 'function'){ renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace(); renderStats(); }
+        if(typeof renderPlaces === 'function'){ renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace(); }
         if(typeof showToast   === 'function') showToast('✅ رجع النت — تمت المزامنة');
       }
     }catch(e){}
@@ -1027,7 +1027,10 @@
         <div style="font-size:.72rem;color:#a78bfa;font-weight:800;margin-bottom:10px;" id="lbl-bp-print-filter">🖨️ طباعة مكان محدد</div>
         <div style="font-size:.65rem;color:var(--muted);margin-bottom:6px;font-weight:700;" id="lbl-bp-print-place">اختر المكان للطباعة</div>
         <select id="bp-print-place" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;margin-bottom:10px;"></select>
-        <button class="btn" onclick="printSinglePlace()" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;width:100%;padding:12px;font-size:.88rem;" id="lbl-bp-print-btn">🖨️ طباعة هذا المكان</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn" onclick="printSinglePlace()" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;width:100%;padding:12px;font-size:.88rem;" id="lbl-bp-print-btn">🖨️ طباعة هذا المكان</button>
+          <button class="btn" onclick="exportSinglePlace()" style="background:linear-gradient(135deg,#1a73e8,#00e5ff);color:#fff;width:100%;padding:12px;font-size:.88rem;" id="lbl-bp-export-btn">📤 تصدير هذا المكان</button>
+        </div>
       </div>
     </div>
 
@@ -1078,66 +1081,6 @@
     </div>
 
 
-  <!-- ══ STATS ══ -->
-  <div id="panel-stats" class="panel">
-    <div class="card">
-      <div class="ch">
-        <div class="ct">📊 <span id="lbl-stats-title">الإحصائيات</span></div>
-      </div>
-
-      <!-- مؤشر التحميل التلقائي -->
-      <div id="load-history-bar" style="background:linear-gradient(135deg,rgba(0,229,255,0.07),rgba(124,58,237,0.07));border:1px solid rgba(0,229,255,0.15);border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px;">
-        <div style="font-size:.78rem;font-weight:800;color:var(--cyan);" id="lbl-history-title">⏳ جاري تحميل كل السجل...</div>
-      </div>
-
-      <!-- بطاقات رئيسية -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        <div style="background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(0,229,255,0.04));border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-income">💰 إجمالي الدخل الكلي</div>
-          <div id="stat-total-income" style="font-size:1.35rem;font-weight:900;color:var(--cyan);">0 ج</div>
-        </div>
-        <div style="background:linear-gradient(135deg,rgba(0,230,118,0.12),rgba(0,230,118,0.04));border:1px solid rgba(0,230,118,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-shifts">📋 عدد الشيفتات الكلي</div>
-          <div id="stat-total-shifts" style="font-size:1.35rem;font-weight:900;color:var(--green);">0</div>
-        </div>
-        <div style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.04));border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-avg-income">📅 متوسط الدخل الشهري</div>
-          <div id="stat-avg-monthly" style="font-size:1.35rem;font-weight:900;color:#a78bfa;">0 ج</div>
-        </div>
-        <div style="background:linear-gradient(135deg,rgba(255,109,0,0.12),rgba(255,109,0,0.04));border:1px solid rgba(255,109,0,0.2);border-radius:16px;padding:16px;text-align:center;">
-          <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-bottom:6px;" id="lbl-stat-avg-shifts">📈 متوسط الشيفتات/شهر</div>
-          <div id="stat-avg-shifts" style="font-size:1.35rem;font-weight:900;color:var(--orange);">0</div>
-        </div>
-      </div>
-
-      <!-- أعلى شهر -->
-      <div style="background:linear-gradient(135deg,rgba(255,214,0,0.1),rgba(255,109,0,0.07));border:1px solid rgba(255,214,0,0.2);border-radius:16px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:.72rem;color:var(--yellow);font-weight:800;margin-bottom:10px;" id="lbl-stat-best-month">🏆 أعلى شهر في المرتب</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div id="stat-best-month-name" style="font-size:.95rem;font-weight:800;color:var(--text);">—</div>
-          <div id="stat-best-month-val" style="font-size:1.1rem;font-weight:900;color:var(--yellow);">0 ج</div>
-        </div>
-        <div style="margin-top:6px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
-          <div id="stat-best-month-bar" style="height:100%;width:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:2px;"></div>
-        </div>
-      </div>
-
-      <!-- أكثر مكان دخلاً -->
-      <div style="background:linear-gradient(135deg,rgba(0,230,118,0.08),rgba(0,229,255,0.05));border:1px solid rgba(0,230,118,0.15);border-radius:16px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:.72rem;color:var(--green);font-weight:800;margin-bottom:10px;" id="lbl-stat-best-place">🏥 أكثر مكان دخلاً</div>
-        <div id="stat-best-place-list" style="display:flex;flex-direction:column;gap:8px;">
-          <div style="color:var(--muted);font-size:.82rem;">لا يوجد بيانات بعد</div>
-        </div>
-      </div>
-
-      <!-- مخطط الدخل الشهري -->
-      <div style="background:var(--s2);border:1px solid var(--border);border-radius:16px;padding:16px;">
-        <div style="font-size:.72rem;color:var(--cyan);font-weight:800;margin-bottom:14px;" id="lbl-stat-monthly-chart">📊 الدخل الشهري</div>
-        <div id="stat-monthly-chart" style="display:flex;align-items:flex-end;gap:6px;height:90px;"></div>
-        <div id="stat-monthly-labels" style="display:flex;gap:6px;margin-top:6px;"></div>
-      </div>
-    </div>
-  </div>
 
 </div><!-- /wrap -->
 
@@ -1190,6 +1133,13 @@
         <div class="field"><label id="lbl-es-exOP">سعر الحالة الأخرى</label><input type="number" id="es-exOP" min="0"></div>
       </div>
       <div class="field" style="margin-bottom:6px;"><label id="lbl-es-note">ملاحظات</label><input type="text" id="es-note"></div>
+
+      <!-- ── صفوف إضافية custom ── -->
+      <div id="es-custom-extras-section" style="margin-bottom:6px;display:none;">
+        <div style="font-size:.68rem;color:var(--cyan);font-weight:800;margin-bottom:8px;padding-top:6px;border-top:1px solid var(--border);">➕ عناصر إضافية</div>
+        <div id="es-custom-rows"></div>
+        <button type="button" onclick="esAddExtraRow()" style="background:rgba(0,229,255,0.08);border:1px dashed rgba(0,229,255,0.3);border-radius:10px;padding:8px;width:100%;color:var(--cyan);font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;margin-top:4px;">➕ إضافة صف جديد</button>
+      </div>
     </div>
     <!-- زرار الحفظ ثابت في الأسفل -->
     <div style="flex-shrink:0;padding-top:12px;border-top:1px solid var(--border);">
@@ -1336,7 +1286,6 @@
   <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('log');return false;"><span class="ico">➕</span><span id="nav-shift-lbl">شيفت</span></button>
   <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('shifts');return false;"><span class="ico">📋</span><span id="nav-log-lbl">السجل</span></button>
   <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('summary');return false;"><span class="ico">💰</span><span id="nav-summary-lbl">الملخص</span></button>
-  <button class="bnav-btn" type="button" onclick="event.preventDefault();event.stopPropagation();tab('stats');return false;"><span class="ico">📊</span><span id="nav-stats-lbl">إحصائيات</span></button>
 </nav>
 
 <script>
@@ -1928,7 +1877,7 @@ async function importBackup(event){
       currentLang = data.lang;
       applyLang();
     }
-    renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderStats();
+    renderPlaces(); populateSels(); renderShifts(); renderSummary();
   } catch(e){
     showToast(isEn ? '❌ Failed to read file' : '❌ فشل قراءة الملف');
   }
@@ -2030,12 +1979,11 @@ function tab(name){
   const panel = document.getElementById('panel-'+name);
   if(!panel) return;
   panel.classList.add('on');
-  const idx=['places','log','shifts','summary','stats'].indexOf(name);
+  const idx=['places','log','shifts','summary'].indexOf(name);
   if(idx>-1) document.querySelectorAll('.bnav-btn')[idx].classList.add('on');
   if(name==='log'){populateSels();resetLog();}
   if(name==='shifts'){populateSels();renderShifts();}
   if(name==='summary'){populateSels();renderSummary();loadCurrency();}
-  if(name==='stats'){ renderStats(); if(!window._fullHistoryLoaded) _fbLoadFullHistory(); }
   window.scrollTo({top:0,behavior:'smooth'});
   // منع scroll للأعلى في URL
   if(history.pushState) history.pushState(null, null, window.location.pathname);
@@ -2084,7 +2032,6 @@ function clearShiftsOnly(){
     save();
     renderShifts();
     renderSummary();
-    renderStats();
     showToast(isEn?'✅ All shifts deleted':'✅ تم مسح كل الشيفتات');
   });
 }
@@ -2121,7 +2068,7 @@ function deletePlace(id){
   const isEn = currentLang === 'en';
   showConfirm(isEn?'Delete this place?':'هتحذف المكان ده؟', ()=>{
     places=places.filter(p=>p.id!==id);shifts=shifts.filter(s=>s.placeId!==id);delete placeTax[id];delete placeDiscount[id];
-    save();renderPlaces();populateSels();renderShifts();renderSummary();renderStats();
+    save();renderPlaces();populateSels();renderShifts();renderSummary();
   });
 }
 function renderPlaces(){
@@ -2425,6 +2372,19 @@ function editShift(id){id=parseInt(id);
   document.getElementById('es-exOC').value=s.exOC||0;
   document.getElementById('es-exOP').value=s.exOP||0;
   document.getElementById('es-note').value=s.note||'';
+
+  // ── تعبئة الصفوف الـ custom ──
+  const esCustomRows = document.getElementById('es-custom-rows');
+  const esCustomSection = document.getElementById('es-custom-extras-section');
+  esCustomRows.innerHTML = '';
+  esExtraRowCount = 0;
+  if(s.customExtras && s.customExtras.length > 0){
+    esCustomSection.style.display = 'block';
+    s.customExtras.forEach(r => esAddExtraRow(r.name, r.count, r.price));
+  } else {
+    esCustomSection.style.display = 'none';
+  }
+
   document.getElementById('edit-shift-modal').classList.add('show');
 }
 
@@ -2453,7 +2413,7 @@ function saveEditShift(){
   const exCaseName   = orig.exCaseName   || (currentLang==='en'?'Regular Cases':'\u062d\u0627\u0644\u0627\u062a \u0639\u0627\u062f\u064a\u0629');
   const exTechName   = orig.exTechName   || (currentLang==='en'?'Technique':'\u062a\u0643\u0646\u064a\u0643');
   const exOtherName  = orig.exOtherName  || (currentLang==='en'?'Other Cases':'\u062d\u0627\u0644\u0627\u062a \u0623\u062e\u0631\u0649');
-  const customExtras = orig.customExtras || [];
+  const customExtras = esGetCustomExtras();
   const customExtrasPay = customExtras.reduce((s,r)=>s+(r.total||r.count*r.price||0),0);
   const basePay=payPrice*count;
   const extraPay=exHC*exHP+exCC*exCP+exTC*exTP+exOC*exOP+customExtrasPay;
@@ -2466,6 +2426,65 @@ function saveEditShift(){
   document.getElementById('edit-shift-modal').classList.remove('show');
   renderShifts();
   showToast((currentLang==='en'?'\u2705 Updated! Total: ':'\u2705 \u062a\u0645 \u0627\u0644\u062a\u0639\u062f\u064a\u0644! \u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a: ')+total.toLocaleString()+(' '+getCurrency()));
+}
+
+// ── Edit Modal: Custom Extra Rows ──
+let esExtraRowCount = 0;
+
+function esAddExtraRow(name='', count='', price=''){
+  esExtraRowCount++;
+  const section = document.getElementById('es-custom-extras-section');
+  if(section) section.style.display = 'block';
+  const id = 'es_custom_' + esExtraRowCount;
+  const div = document.createElement('div');
+  div.id = 'es-extra-row-' + id;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 80px 80px 30px;gap:6px;align-items:end;margin-bottom:6px;';
+
+  const nameInput = document.createElement('input');
+  nameInput.type='text'; nameInput.id='es-ex-'+id+'-name'; nameInput.placeholder='اسم العنصر';
+  nameInput.value = name;
+  nameInput.style.cssText='background:var(--s3);border:1px solid var(--cyan);border-radius:8px;padding:6px 8px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;';
+
+  const countInput = document.createElement('input');
+  countInput.type='number'; countInput.id='es-ex-'+id+'-count'; countInput.placeholder='0'; countInput.min='0';
+  countInput.value = count;
+  countInput.style.cssText='background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:6px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;text-align:center;';
+
+  const priceInput = document.createElement('input');
+  priceInput.type='number'; priceInput.id='es-ex-'+id+'-price'; priceInput.placeholder='0'; priceInput.min='0';
+  priceInput.value = price;
+  priceInput.style.cssText='background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:6px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;text-align:center;';
+
+  const delBtn = document.createElement('button');
+  delBtn.type='button'; delBtn.textContent='✕';
+  delBtn.style.cssText='background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#ef4444;border-radius:8px;padding:6px;cursor:pointer;font-size:.9rem;';
+  delBtn.onclick = function(){
+    div.remove();
+    const rows = document.getElementById('es-custom-rows');
+    if(rows && rows.children.length === 0){
+      const sec = document.getElementById('es-custom-extras-section');
+      if(sec) sec.style.display = 'none';
+    }
+  };
+
+  const d1=document.createElement('div'); d1.appendChild(nameInput);
+  const d2=document.createElement('div'); d2.appendChild(countInput);
+  const d3=document.createElement('div'); d3.appendChild(priceInput);
+  div.appendChild(d1); div.appendChild(d2); div.appendChild(d3); div.appendChild(delBtn);
+  document.getElementById('es-custom-rows').appendChild(div);
+}
+
+function esGetCustomExtras(){
+  const rows = document.querySelectorAll('[id^="es-extra-row-es_custom_"]');
+  const result = [];
+  rows.forEach(row => {
+    const id = row.id.replace('es-extra-row-', '');
+    const name  = document.getElementById('es-ex-'+id+'-name')?.value || '';
+    const count = parseFloat(document.getElementById('es-ex-'+id+'-count')?.value)||0;
+    const price = parseFloat(document.getElementById('es-ex-'+id+'-price')?.value)||0;
+    if(count || price) result.push({name: name||'إضافي', count, price, total: count*price});
+  });
+  return result;
 }
 
 // ── SUMMARY ──
@@ -2708,6 +2727,113 @@ function printSinglePlace(){
   if(!win){showToast("⚠️ "+(isEn?"Allow popups":"افتح الـ popup"));return;}
   win.document.write(html);
   win.document.close();
+}
+
+async function exportSinglePlace(){
+  const selPid = document.getElementById("bp-print-place")?.value || "";
+  const bm = document.getElementById("bp-month")?.value || "";
+  const bf = document.getElementById("bp-date-from")?.value || "";
+  const bt = document.getElementById("bp-date-to")?.value || "";
+  const isEn = currentLang === "en";
+  let list = [...shifts];
+  if(bm) list = list.filter(s => s.date.startsWith(bm));
+  else if(bf || bt) list = list.filter(s => { if(bf && s.date < bf) return false; if(bt && s.date > bt) return false; return true; });
+  if(selPid) list = list.filter(s => s.placeId+"" === selPid+"");
+  if(!list.length){ showToast(isEn?"⚠️ No data":"⚠️ لا يوجد بيانات"); return; }
+
+  const dir2 = isEn ? "ltr" : "rtl";
+  const byPlace = {};
+  const placeColors = ["#1a73e8","#7c3aed","#00897b","#e65100","#c2185b","#0288d1","#558b2f","#6a1b9a"];
+  let ci = 0;
+  list.forEach(s=>{ const k = s.placeId+""; if(!byPlace[k]){byPlace[k]={name:s.placeName,shifts:[],total:0,base:0,extra:0,color:placeColors[ci%placeColors.length]};ci++;} byPlace[k].shifts.push(s); byPlace[k].total += s.total; byPlace[k].base += s.basePay; byPlace[k].extra += s.extraPay; });
+  const period = bm || ((bf||(isEn?"Start":"البداية"))+" → "+(bt||(isEn?"End":"النهاية")));
+  const taxPct = parseFloat(document.getElementById("tax-pct")?.value)||0;
+  const grossTotal = list.reduce((a,s)=>a+s.total, 0);
+  const globalTaxAmt = grossTotal * taxPct / 100;
+  const perPlaceTaxAmt = Object.keys(byPlace).reduce((a,pid)=>{ const pTax=(placeTax&&placeTax[pid])?placeTax[pid]:0; return a+(byPlace[pid].total*pTax/100); },0);
+  const taxAmt = globalTaxAmt > 0 ? globalTaxAmt : perPlaceTaxAmt;
+  const uniquePids = [...new Set(list.map(s=>s.placeId+""))];
+  const totalDiscAmt = uniquePids.reduce((a,pid)=>a+(placeDiscount[pid]||0),0);
+  const netTotal = grossTotal - taxAmt - totalDiscAmt;
+
+  showToast(isEn?'📸 Generating...':'📸 جاري التوليد...');
+
+  try{
+    if(!window.domtoimage){
+      await new Promise((ok,fail)=>{
+        const sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js';
+        sc.onload = ok; sc.onerror = fail;
+        document.head.appendChild(sc);
+      });
+    }
+
+    const BASE_W = 720;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `position:absolute;left:-9999px;top:0;width:${BASE_W}px;background:#f0f2f8;`;
+    wrap.innerHTML = _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, taxAmt, netTotal, taxPct);
+    document.body.appendChild(wrap);
+
+    await new Promise(r=>setTimeout(r, 600));
+
+    const el = wrap.querySelector('#rpt-root') || wrap;
+    const elHeight = el.scrollHeight || el.offsetHeight || 1200;
+
+    const blob = await domtoimage.toBlob(el, {
+      bgcolor: '#f0f2f8',
+      width: BASE_W,
+      height: elHeight,
+      style: { overflow: 'visible' }
+    });
+
+    document.body.removeChild(wrap);
+
+    if(!blob){ showToast('❌ '+(isEn?'Capture failed':'فشل التقاط الصورة')); return; }
+
+    const SCALE = 1920 / BASE_W;
+    const _tmpUrl = URL.createObjectURL(blob);
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = _tmpUrl;
+    });
+    URL.revokeObjectURL(_tmpUrl);
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = Math.round(BASE_W * SCALE);
+    canvas.height = Math.round(elHeight * SCALE);
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const hdBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    if(!hdBlob){ showToast('❌ '+(isEn?'Failed':'فشل')); return; }
+
+    const placeName = selPid ? (list[0]?.placeName||'place') : (isEn?'all':'الكل');
+    const fname = `SHIFTATY_${placeName}_${period.replace(/[^\w\u0600-\u06FF]/g,'_')}.png`;
+    const file  = new File([hdBlob], fname, {type:'image/png'});
+
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({title:'⚡ SHIFTATY', files:[file]}); return; }
+      catch(e){ if(e.name==='AbortError') return; }
+    }
+
+    const url = URL.createObjectURL(hdBlob);
+    const a   = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    showToast(isEn?'✅ Downloaded! (Full HD)':'✅ تم تصدير المكان بجودة Full HD!');
+
+  }catch(err){
+    console.error('exportSinglePlace:', err);
+    const html = _buildReportHTML(isEn, dir2, period, taxPct, grossTotal, taxAmt, netTotal, list, byPlace, placeTax, false);
+    const win  = window.open('','_blank');
+    if(win){ win.document.write(html); win.document.close(); }
+    else showToast('⚠️ '+(isEn?'Allow popups':'افتح الـ popup'));
+  }
 }
 
 function printReport(){
@@ -3291,6 +3417,7 @@ function applyLang(){
   s('lbl-bp-print-filter', isEn ? '🖨️ Print Specific Place'  : '🖨️ طباعة مكان محدد');
   s('lbl-bp-print-place',  isEn ? 'Choose Place to Print'  : 'اختر المكان للطباعة');
   s('lbl-bp-print-btn',    isEn ? '🖨️ Print This Place'     : '🖨️ طباعة هذا المكان');
+  s('lbl-bp-export-btn',   isEn ? '📤 Export This Place'    : '📤 تصدير هذا المكان');
   // update bp-print-place first option
   const bpPrintSel2 = document.getElementById('bp-print-place');
   if(bpPrintSel2 && bpPrintSel2.options[0]) bpPrintSel2.options[0].textContent = isEn ? 'All Places' : 'كل الأماكن';
@@ -3340,16 +3467,6 @@ function applyLang(){
   renderByPlace();
 
   // ── STATS PANEL ──
-  s('lbl-stats-title',       isEn ? 'Statistics'                    : 'الإحصائيات');
-  s('nav-stats-lbl',         isEn ? 'Stats'                         : 'إحصائيات');
-  s('lbl-stat-income',       isEn ? '💰 Total Income'               : '💰 إجمالي الدخل الكلي');
-  s('lbl-stat-shifts',       isEn ? '📋 Total Shifts'               : '📋 عدد الشيفتات الكلي');
-  s('lbl-stat-avg-income',   isEn ? '📅 Avg Monthly Income'         : '📅 متوسط الدخل الشهري');
-  s('lbl-stat-avg-shifts',   isEn ? '📈 Avg Shifts/Month'           : '📈 متوسط الشيفتات/شهر');
-  s('lbl-stat-best-month',   isEn ? '🏆 Best Salary Month'          : '🏆 أعلى شهر في المرتب');
-  s('lbl-stat-best-place',   isEn ? '🏥 Highest Earning Place'      : '🏥 أكثر مكان دخلاً');
-  s('lbl-stat-monthly-chart',isEn ? '📊 Monthly Income'             : '📊 الدخل الشهري');
-
   // ── BACKUP SECTION ──
   s('lbl-backup-title',   isEn ? '💾 Backup'                                                              : '💾 النسخ الاحتياطي');
   s('lbl-backup-desc',    isEn ? 'Save & restore your data anytime — upload to Google Drive or iCloud.'   : 'احفظ بياناتك واستعدها في أي وقت — يُنصح برفع الملف على Google Drive أو iCloud لحمايته.');
@@ -4100,51 +4217,6 @@ async function _fbSyncLoad(){
   } catch(e){ console.log('_fbSyncLoad error:', e); return false; }
 }
 
-// ── تحميل كل التاريخ تلقائياً عند فتح الإحصائيات ──
-async function _fbLoadFullHistory(){
-  const bar = document.getElementById('load-history-bar');
-  const title = document.getElementById('lbl-history-title');
-  try{
-    if(!window._fbCurrentUser){ if(bar) bar.style.display='none'; return; }
-    // إظهار مؤشر التحميل
-    if(bar) bar.style.display='flex';
-    if(title) title.textContent = '⏳ جاري تحميل كل السجل...';
-    const uid = window._fbCurrentUser.uid;
-    const allMonths = await window._fbLoadAllMonths(uid);
-    let allShifts = [];
-    Object.values(allMonths).forEach(m => {
-      if(m.shifts) allShifts = allShifts.concat(JSON.parse(m.shifts));
-    });
-    // رتّب الشيفتات بالتاريخ
-    allShifts.sort((a,b) => (b.date||'').localeCompare(a.date||''));
-    window._fullHistoryLoaded = true;
-    // مقارنة الشيفتات بالمحتوى مش بالعدد بس
-    function isShiftsUpdated(oldShifts, newShifts){
-      if(oldShifts.length !== newShifts.length) return true;
-      const sortById = arr => [...arr].sort((a,b) => (a.id||0) - (b.id||0));
-      const sortedOld = sortById(oldShifts);
-      const sortedNew = sortById(newShifts);
-      for(let i = 0; i < sortedOld.length; i++){
-        if(sortedOld[i].id !== sortedNew[i].id ||
-           sortedOld[i].total !== sortedNew[i].total ||
-           sortedOld[i].date !== sortedNew[i].date){
-          return true;
-        }
-      }
-      return false;
-    }
-    if(isShiftsUpdated(shifts, allShifts)){
-      shifts = allShifts;
-      renderShifts(); renderSummary(); renderByPlace(); renderStats();
-    }
-    // إخفاء الـ bar بعد التحميل
-    if(bar) bar.style.display = 'none';
-  } catch(e){
-    if(bar) bar.style.display = 'none';
-    console.log('_fbLoadFullHistory error:', e);
-  }
-}
-
 // override save() عشان يحفظ على Firestore كمان
 const _origSave = save;
 window.save = async function(){
@@ -4164,7 +4236,6 @@ window._onFirebaseReady = async function(user){
       // ✅ أوفلاين — استخدم البيانات المحلية
       checkActivation();
       renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
-      renderStats();
       _injectLogoutBtn(user.email);
       showToast('📵 أوفلاين — بياناتك المحلية محملة، هيتزامن لما يرجع النت');
     } else {
@@ -4173,7 +4244,6 @@ window._onFirebaseReady = async function(user){
       checkActivation();
       if(loaded){
         renderPlaces(); populateSels(); renderShifts(); renderSummary(); renderByPlace();
-        renderStats();
       }
       _injectLogoutBtn(user.email);
       setTimeout(_fbSyncSave, 2000);
@@ -4385,107 +4455,6 @@ function checkOnboarding(){
     showOnboarding();
   }
 }
-
-
-// ══ STATISTICS ══
-function renderStats(){
-  const isEn = currentLang === 'en';
-  const cu = ' ' + getCurrency();
-  if(!shifts.length){
-    document.getElementById('stat-total-income').textContent = '0' + cu;
-    document.getElementById('stat-total-shifts').textContent = '0';
-    document.getElementById('stat-avg-monthly').textContent = '0' + cu;
-    document.getElementById('stat-avg-shifts').textContent = '0';
-    document.getElementById('stat-best-month-name').textContent = '—';
-    document.getElementById('stat-best-month-val').textContent = '0' + cu;
-    document.getElementById('stat-best-place-list').innerHTML = '<div style="color:var(--muted);font-size:.82rem;">'+(isEn?'No data yet':'لا يوجد بيانات بعد')+'</div>';
-    document.getElementById('stat-monthly-chart').innerHTML = '';
-    document.getElementById('stat-monthly-labels').innerHTML = '';
-    return;
-  }
-
-  // ── إجمالي الدخل والشيفتات ──
-  const totalIncome = shifts.reduce((a,s)=>a+s.total,0);
-  const totalShifts = shifts.length;
-  document.getElementById('stat-total-income').textContent = totalIncome.toLocaleString() + cu;
-  document.getElementById('stat-total-shifts').textContent = totalShifts;
-
-  // ── تجميع حسب الشهر ──
-  const byMonth = {};
-  shifts.forEach(s=>{
-    const m = s.date.substring(0,7);
-    if(!byMonth[m]) byMonth[m] = {total:0, count:0};
-    byMonth[m].total += s.total;
-    byMonth[m].count++;
-  });
-  const months = Object.keys(byMonth).sort();
-  const nMonths = months.length;
-
-  // ── متوسط الدخل الشهري ──
-  const avgMonthly = nMonths > 0 ? Math.round(totalIncome / nMonths) : 0;
-  const avgShifts  = nMonths > 0 ? Math.round(totalShifts / nMonths) : 0;
-  document.getElementById('stat-avg-monthly').textContent = avgMonthly.toLocaleString() + cu;
-  document.getElementById('stat-avg-shifts').textContent  = avgShifts;
-
-  // ── أعلى شهر ──
-  let bestMonth = months[0], bestVal = 0;
-  months.forEach(m=>{ if(byMonth[m].total > bestVal){ bestVal = byMonth[m].total; bestMonth = m; } });
-  const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  const monthNamesEn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function fmtMonth(ym){
-    const [y,m] = ym.split('-');
-    return isEn ? (monthNamesEn[parseInt(m)-1]+' '+y) : (monthNames[parseInt(m)-1]+' '+y);
-  }
-  document.getElementById('stat-best-month-name').textContent = fmtMonth(bestMonth);
-  document.getElementById('stat-best-month-val').textContent  = bestVal.toLocaleString() + cu;
-
-  // ── أكثر مكان دخلاً ──
-  const byPlace = {};
-  shifts.forEach(s=>{
-    const k = s.placeId+'';
-    if(!byPlace[k]) byPlace[k] = {name:s.placeName, total:0, count:0};
-    byPlace[k].total += s.total;
-    byPlace[k].count++;
-  });
-  const sortedPlaces = Object.values(byPlace).sort((a,b)=>b.total-a.total);
-  const maxPlaceVal = sortedPlaces[0]?.total || 1;
-  const placeColors2 = ['#00e676','#00e5ff','#a78bfa','#ff9800','#ff5252'];
-  document.getElementById('stat-best-place-list').innerHTML = sortedPlaces.map((p,i)=>{
-    const pct = Math.round(p.total / maxPlaceVal * 100);
-    const col = placeColors2[i % placeColors2.length];
-    return `<div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <span style="font-size:.8rem;font-weight:700;color:var(--text);">🏥 ${p.name}</span>
-        <span style="font-size:.82rem;font-weight:900;color:${col};">${p.total.toLocaleString()}${cu}</span>
-      </div>
-      <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;transition:width .6s ease;"></div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // ── مخطط الدخل الشهري (آخر 6 شهور) ──
-  const last6 = months.slice(-6);
-  const maxVal = Math.max(...last6.map(m=>byMonth[m].total), 1);
-  const chartColors = ['#00e5ff','#a78bfa','#00e676','#ff9800','#ff5252','#ffd600'];
-  document.getElementById('stat-monthly-chart').innerHTML = last6.map((m,i)=>{
-    const pct = Math.round(byMonth[m].total / maxVal * 100);
-    const col = chartColors[i % chartColors.length];
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-      <div style="font-size:.6rem;color:var(--muted);font-weight:700;">${byMonth[m].total.toLocaleString()}</div>
-      <div style="width:100%;background:rgba(255,255,255,0.06);border-radius:4px 4px 0 0;height:60px;display:flex;align-items:flex-end;">
-        <div style="width:100%;height:${Math.max(pct,4)}%;background:linear-gradient(180deg,${col},${col}88);border-radius:4px 4px 0 0;transition:height .6s ease;"></div>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('stat-monthly-labels').innerHTML = last6.map((m,i)=>{
-    const col = chartColors[i % chartColors.length];
-    const parts = m.split('-');
-    const lbl = isEn ? monthNamesEn[parseInt(parts[1])-1] : monthNames[parseInt(parts[1])-1].substring(0,3);
-    return `<div style="flex:1;text-align:center;font-size:.6rem;color:${col};font-weight:700;">${lbl}</div>`;
-  }).join('');
-}
-
 
 
 // ══ CURRENCY ══
