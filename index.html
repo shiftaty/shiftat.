@@ -2644,7 +2644,7 @@ function _buildReportContent(isEn, dir2, byPlace, placeTax, list, grossTotal, ta
 
     <!-- STAT CARDS (table بدل grid عشان html2canvas) -->
     ${(()=>{
-      const totalShifts = list.filter(s=>!['case','hour','custom'].includes(s.payType)).length;
+      const totalShifts = list.filter(s=>!['case','hour','custom'].includes(s.payType)).reduce((a,s)=>a+(s.count||1),0);
       const totalCases  = list.reduce((a,s)=>a+(s.payType==='case'?s.count:0)+(s.exCC||0)+(s.exTC||0)+(s.exOC||0),0);
       const totalHours  = list.reduce((a,s)=>a+(s.payType==='hour'?s.count:0)+(s.exHC||0),0);
       const customList  = list.filter(s=>s.payType==='custom');
