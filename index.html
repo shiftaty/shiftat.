@@ -1002,11 +1002,17 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
           <div style="flex:1;min-width:120px;">
             <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:700;" id="lbl-bp-from">من تاريخ</div>
-            <input type="date" id="bp-date-from" lang="en" onchange="renderByPlace()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;">
+            <input type="hidden" id="bp-date-from" onchange="renderByPlace()">
+            <div class="cdp-fake-input" id="bp-date-from-display" onclick="openDatePicker('bp-date-from','bp-date-from-display')" style="font-size:.85rem;padding:9px 12px;">
+              <span id="bp-date-from-lbl" style="color:var(--muted);">—</span>
+            </div>
           </div>
           <div style="flex:1;min-width:120px;">
             <div style="font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:700;" id="lbl-bp-to">لتاريخ</div>
-            <input type="date" id="bp-date-to" lang="en" onchange="renderByPlace()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:9px 10px;color:var(--text);font-family:Cairo,sans-serif;font-size:16px;outline:none;width:100%;">
+            <input type="hidden" id="bp-date-to" onchange="renderByPlace()">
+            <div class="cdp-fake-input" id="bp-date-to-display" onclick="openDatePicker('bp-date-to','bp-date-to-display')" style="font-size:.85rem;padding:9px 12px;">
+              <span id="bp-date-to-lbl" style="color:var(--muted);">—</span>
+            </div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
@@ -2530,6 +2536,10 @@ function renderSummary(){
 function onBpMonthChange(){
   document.getElementById('bp-date-from').value='';
   document.getElementById('bp-date-to').value='';
+  const lf = document.getElementById('bp-date-from-lbl');
+  const lt = document.getElementById('bp-date-to-lbl');
+  if(lf){ lf.textContent='—'; lf.style.color='var(--muted)'; }
+  if(lt){ lt.textContent='—'; lt.style.color='var(--muted)'; }
   renderByPlace();
 }
 
@@ -2537,6 +2547,10 @@ function clearBpFilter(){
   document.getElementById('bp-month').value='';
   document.getElementById('bp-date-from').value='';
   document.getElementById('bp-date-to').value='';
+  const lf = document.getElementById('bp-date-from-lbl');
+  const lt = document.getElementById('bp-date-to-lbl');
+  if(lf){ lf.textContent='—'; lf.style.color='var(--muted)'; }
+  if(lt){ lt.textContent='—'; lt.style.color='var(--muted)'; }
   renderByPlace();
 }
 
@@ -4772,8 +4786,8 @@ function cdpConfirm(){
   if(hiddenEl) hiddenEl.value = isoVal;
   const dispValEl = document.getElementById(_cdp.displayId + '-val');
   if(dispValEl) dispValEl.textContent = cdpFmtDisplay(_cdp.selected);
-  // date-range fields: shifts panel (f-) or summary (s-)
-  const dateRangeIds = ['f-date-from','f-date-to','s-date-from','s-date-to'];
+  // date-range fields: shifts panel (f-) or summary (s-) or byplace (bp-)
+  const dateRangeIds = ['f-date-from','f-date-to','s-date-from','s-date-to','bp-date-from','bp-date-to'];
   if(dateRangeIds.includes(_cdp.targetId)){
     const lbl = document.getElementById(_cdp.targetId + '-lbl');
     if(lbl){
@@ -4781,6 +4795,7 @@ function cdpConfirm(){
       lbl.style.color = 'var(--text)';
     }
     if(_cdp.targetId.startsWith('f-')) renderShifts();
+    else if(_cdp.targetId.startsWith('bp-')) renderByPlace();
     else renderSummary();
   }
   if(_cdp.targetId === 'l-date'){
