@@ -1822,6 +1822,7 @@ async function save(){
     localStorage.setItem('sj_shifts_plain', s);
     localStorage.setItem('sj_ptax_plain',   pt);
     localStorage.setItem('sj_pdisc_plain',  pd);
+    localStorage.setItem('sj_local_updated_at', Date.now().toString()); // وقت آخر حفظ محلي
   }catch(e){}
 
   // حفظ في مشفر + IndexedDB + Cache Storage بالتوازي
@@ -3948,8 +3949,21 @@ async function _fbSyncSave(){
 
     // 2️⃣ حفظ الشيفتات — كل شهر في document منفصل
     const byMonth = _groupShiftsByMonth();
-    const saves = Object.entries(byMonth).map(([mk, mShifts]) =>
-      window._fbSaveMonth(uid, mk, { shifts: JSON.stringify(mShifts), updatedAt: Date.now() })
+
+    // جيب الشهور الموجودة على السيرفر عشان لو شهر اتفضى نحدثه بـ array فاضية
+    let existingMonthKeys = [];
+    try {
+      const allMonthsSnap = await _fbDb.collection('users').doc(uid).collection('months').get();
+      allMonthsSnap.forEach(doc => existingMonthKeys.push(doc.id));
+    } catch(e) {}
+
+    // ادمج: الشهور اللي فيها شيفتات + الشهور الفاضية على السيرفر
+    const allMonthKeys = new Set([...Object.keys(byMonth), ...existingMonthKeys]);
+    const saves = Array.from(allMonthKeys).map(mk =>
+      window._fbSaveMonth(uid, mk, {
+        shifts: JSON.stringify(byMonth[mk] || []),
+        updatedAt: Date.now()
+      })
     );
     await Promise.all(saves);
 
@@ -4006,20 +4020,15 @@ async function _fbSyncLoad(){
     if(curData && curData.shifts) cloudShifts = cloudShifts.concat(JSON.parse(curData.shifts));
     if(prvData && prvData.shifts) cloudShifts = cloudShifts.concat(JSON.parse(prvData.shifts));
 
-    // مقارنة ذكية: بالأحدث مش بالعدد بس
-    if(cloudShifts.length > 0){
-      if(shifts.length === 0){
-        shifts = cloudShifts;
-      } else {
-        const localLatest = shifts.reduce((max,s)=> s.id>max ? s.id : max, 0);
-        const cloudLatest = cloudShifts.reduce((max,s)=> s.id>max ? s.id : max, 0);
-        if(cloudLatest > localLatest){
-          shifts = cloudShifts;
-        } else if(cloudLatest === localLatest && cloudShifts.length > shifts.length){
-          shifts = cloudShifts;
-        }
-      }
+    // مقارنة ذكية: بالـ updatedAt — اللي اتحفظ أخيراً هو الصح
+    const localUpdatedAt = parseInt(localStorage.getItem('sj_local_updated_at') || '0');
+    const cloudUpdatedAt = Math.max(curData?.updatedAt || 0, prvData?.updatedAt || 0);
+
+    if(cloudUpdatedAt > localUpdatedAt){
+      // السيرفر أحدث — خد بياناته
+      shifts = cloudShifts;
     }
+    // لو المحلي أحدث أو مساوي — افضل على المحلي (يشمل حالة الحذف)
 
 
 
