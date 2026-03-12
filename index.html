@@ -957,6 +957,10 @@
           <button class="btn btn-out" onclick="clearSummaryFilter()" id="all-time-lbl" style="white-space:nowrap;padding:8px 12px;font-size:.78rem;">كل الوقت</button>
         </div>
       </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-bottom:4px;" id="lbl-s-place">🏥 المكان</div>
+        <select id="s-place" onchange="renderSummary()" style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:16px;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;"></select>
+      </div>
     </div>
     <div class="stat-grid">
       <div class="stat-box c"><div class="stat-num" id="st-shifts">0</div><div class="stat-lbl" id="lbl-st-shifts">شيفتات</div></div>
@@ -2019,7 +2023,7 @@ function tab(name){
   if(idx>-1) document.querySelectorAll('.bnav-btn')[idx].classList.add('on');
   if(name==='log'){populateSels();resetLog();}
   if(name==='shifts'){populateSels();renderShifts();}
-  if(name==='summary'){renderSummary();loadCurrency();}
+  if(name==='summary'){populateSels();renderSummary();loadCurrency();}
   if(name==='stats'){ renderStats(); if(!window._fullHistoryLoaded) _fbLoadFullHistory(); }
   window.scrollTo({top:0,behavior:'smooth'});
   // منع scroll للأعلى في URL
@@ -2147,6 +2151,13 @@ function populateSels(){
     places.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
     if(prev)sel.value=prev;
   });
+  const sSel=document.getElementById('s-place');
+  if(sSel){
+    const prev=sSel.value;
+    sSel.innerHTML=`<option value="">${isEn?'All Places':'كل الأماكن'}</option>`;
+    places.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sSel.appendChild(o);});
+    if(prev)sSel.value=prev;
+  }
 }
 function resetLog(){
   document.getElementById('l-place').value='';
@@ -2460,12 +2471,15 @@ function clearSummaryFilter(){
   const lt=document.getElementById('s-date-to-lbl');
   if(lf){lf.textContent='—';lf.style.color='var(--muted)';}
   if(lt){lt.textContent='—';lt.style.color='var(--muted)';}
+  const sp=document.getElementById('s-place');
+  if(sp)sp.value='';
   renderSummary();
 }
 function renderSummary(){
   const sm=document.getElementById('s-month').value;
   const sf=document.getElementById('s-date-from').value;
   const st=document.getElementById('s-date-to').value;
+  const sp=document.getElementById('s-place')?.value||'';
   let list=[...shifts];
   if(sm) list=list.filter(s=>s.date.startsWith(sm));
   else if(sf||st){
@@ -2475,6 +2489,7 @@ function renderSummary(){
       return true;
     });
   }
+  if(sp) list=list.filter(s=>s.placeId+''===sp+'');
   document.getElementById('st-shifts').textContent=list.filter(s=>!['case','hour','custom'].includes(s.payType)).reduce((a,s)=>a+(s.count||1),0);
   document.getElementById('st-hours').textContent=list.reduce((a,s)=>a+(s.payType==='hour'?s.count:0),0);
   document.getElementById('st-cases').textContent=list.reduce((a,s)=>a+(s.payType==='case'?s.count:0)+(s.exCC||0)+(s.exTC||0)+(s.exOC||0),0);
@@ -3172,6 +3187,7 @@ function applyLang(){
   s('lbl-from-date',     isEn ? '📅 From Date'           : '📅 من تاريخ');
   s('lbl-to-date',       isEn ? '📅 To Date'             : '📅 لتاريخ');
   s('lbl-or-month',      isEn ? '🗓️ Or select month'    : '🗓️ أو اختر شهر');
+  s('lbl-s-place',       isEn ? '🏥 Place'               : '🏥 المكان');
   s('all-time-lbl',      isEn ? 'All Time'               : 'كل الوقت');
   s('lbl-st-shifts',     isEn ? 'Shifts'                 : 'شيفتات');
   s('lbl-st-hours',      isEn ? 'Hours'                  : 'ساعات');
