@@ -279,16 +279,20 @@
   .ty{background:rgba(255,214,0,0.1);color:var(--yellow);border:1px solid rgba(255,214,0,0.2);}
 
   /* ── STATS ── */
-  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
-  .stat-box{background:var(--s2);border:1px solid var(--border);border-radius:15px;padding:16px 10px;text-align:center;position:relative;overflow:hidden;}
+  .stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;}
+  .stat-box{background:var(--s2);border:1px solid var(--border);border-radius:15px;padding:14px 6px;text-align:center;position:relative;overflow:hidden;}
   .stat-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;}
   .stat-box.c::after{background:var(--cyan);}
   .stat-box.v::after{background:var(--violet);}
   .stat-box.g::after{background:var(--green);}
-  .stat-num{font-size:1.6rem;font-weight:900;line-height:1;margin-bottom:4px;}
+  .stat-box.o::after{background:#f97316;}
+  .stat-box.p::after{background:#22c55e;}
+  .stat-num{font-size:1.4rem;font-weight:900;line-height:1;margin-bottom:4px;}
   .stat-box.c .stat-num{color:var(--cyan);}
   .stat-box.v .stat-num{color:#a78bfa;}
   .stat-box.g .stat-num{color:var(--green);}
+  .stat-box.o .stat-num{color:#f97316;}
+  .stat-box.p .stat-num{color:#22c55e;}
   .stat-lbl{font-size:.68rem;color:var(--muted);font-weight:600;}
 
   /* ── SALARY ── */
@@ -958,6 +962,8 @@
       <div class="stat-box c"><div class="stat-num" id="st-shifts">0</div><div class="stat-lbl" id="lbl-st-shifts">شيفتات</div></div>
       <div class="stat-box v"><div class="stat-num" id="st-hours">0</div><div class="stat-lbl" id="lbl-st-hours">ساعات</div></div>
       <div class="stat-box g"><div class="stat-num" id="st-cases">0</div><div class="stat-lbl" id="lbl-st-cases">حالات</div></div>
+      <div class="stat-box o"><div class="stat-num" id="st-visits">0</div><div class="stat-lbl" id="lbl-st-visits">زيارة</div></div>
+      <div class="stat-box p"><div class="stat-num" id="st-places">0</div><div class="stat-lbl" id="lbl-st-places">أماكن</div></div>
     </div>
     <div class="vtoggle">
       <button class="vtbtn on" id="vt-total" onclick="setView('total')">📊 <span id="lbl-vt-total">الكلي</span></button>
@@ -2472,6 +2478,16 @@ function renderSummary(){
   document.getElementById('st-shifts').textContent=list.filter(s=>!['case','hour','custom'].includes(s.payType)).reduce((a,s)=>a+(s.count||1),0);
   document.getElementById('st-hours').textContent=list.reduce((a,s)=>a+(s.payType==='hour'?s.count:0),0);
   document.getElementById('st-cases').textContent=list.reduce((a,s)=>a+(s.payType==='case'?s.count:0)+(s.exCC||0)+(s.exTC||0)+(s.exOC||0),0);
+  const customList=list.filter(s=>s.payType==='custom');
+  const visitsEl=document.getElementById('st-visits'); if(visitsEl) visitsEl.textContent=customList.reduce((a,s)=>a+(s.count||0),0);
+  const visitsLblEl=document.getElementById('lbl-st-visits');
+  if(visitsLblEl){
+    let customLbl='';
+    if(customList.length>0){const s0=customList[0];customLbl=s0.customUnit||(()=>{const p=places.find(x=>x.id==s0.placeId);return p&&p.customName?p.customName:''})();}
+    if(!customLbl){const p=places.find(x=>x.type==='custom');customLbl=p&&p.customName?p.customName:'';}
+    visitsLblEl.textContent=customLbl||(currentLang==='en'?'Other':'آخر');
+  }
+  const placesEl=document.getElementById('st-places'); if(placesEl) placesEl.textContent=[...new Set(list.map(s=>s.placeId+'').filter(Boolean))].length;
   const basePay=list.reduce((a,s)=>a+s.basePay,0);
   const extraPay=list.reduce((a,s)=>a+s.extraPay,0);
   const gross=basePay+extraPay;
@@ -3160,6 +3176,8 @@ function applyLang(){
   s('lbl-st-shifts',     isEn ? 'Shifts'                 : 'شيفتات');
   s('lbl-st-hours',      isEn ? 'Hours'                  : 'ساعات');
   s('lbl-st-cases',      isEn ? 'Cases'                  : 'حالات');
+  s('lbl-st-visits',     isEn ? 'Visits'                 : 'زيارة');
+  s('lbl-st-places',     isEn ? 'Places'                 : 'أماكن');
   s('lbl-vt-total',      isEn ? 'Total'                  : 'الكلي');
   s('lbl-vt-byplace',    isEn ? 'Per Place'              : 'لكل مكان');
   s('lbl-tax-pct',       isEn ? '🧾 Tax Rate'            : '🧾 نسبة الضريبة');
